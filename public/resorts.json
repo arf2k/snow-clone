@@ -1,78 +1,353 @@
 [
-  {
-    "id": "killington",
-    "name": "Killington, VT",
-    "region": "NE",
-    "country": "US",
-    "ikon": true,
-    "snowboardAllowed": true,
-    "sources": { "nws": true, "open_meteo": true, "windy": true },
-    "elevations": {
-      "base":   { "lat": 43.626, "lon": -72.796, "elev_m": 520 },
-      "mid":    { "lat": 43.610, "lon": -72.811, "elev_m": 900 },
-      "summit": { "lat": 43.604, "lon": -72.820, "elev_m": 1290 }
-    },
-    "links": {
-      "official": "https://www.killington.com/",
-      "cams": ["https://www.killington.com/the-mountain/mountain-report/webcams"],
-      "dot": ["https://newengland511.org/"]
-    }
-  },
-  {
-    "id": "sugarbush_lincoln",
-    "name": "Sugarbush (Lincoln Peak), VT",
-    "region": "NE",
-    "country": "US",
-    "ikon": true,
-    "snowboardAllowed": true,
-    "sources": { "nws": true, "open_meteo": true, "windy": true },
-    "elevations": {
-      "base":   { "lat": 44.134, "lon": -72.884, "elev_m": 455 },
-      "mid":    { "lat": 44.134, "lon": -72.895, "elev_m": 850 },
-      "summit": { "lat": 44.135, "lon": -72.894, "elev_m": 1200 }
-    },
-    "links": {
-      "official": "https://www.sugarbush.com/",
-      "cams": ["https://www.sugarbush.com/mountain/webcams"],
-      "dot": ["https://newengland511.org/"]
-    }
-  },
-  {
-    "id": "snowbird_hidden_peak",
-    "name": "Snowbird (Hidden Peak), UT",
-    "region": "Wasatch",
-    "country": "US",
-    "ikon": true,
-    "snowboardAllowed": true,
-    "sources": { "nws": true, "open_meteo": true, "windy": true },
-    "elevations": {
-      "base":   { "lat": 40.582, "lon": -111.649, "elev_m": 2365 },
-      "mid":    { "lat": 40.579, "lon": -111.655, "elev_m": 2700 },
-      "summit": { "lat": 40.581, "lon": -111.657, "elev_m": 3350 }
-    },
-    "links": {
-      "official": "https://www.snowbird.com/",
-      "cams": ["https://www.snowbird.com/mountain-cams/"],
-      "dot": ["https://udottraffic.utah.gov/"]
-    }
-  },
-  {
-    "id": "palisades_tahoe",
-    "name": "Palisades Tahoe, CA",
-    "region": "Tahoe",
-    "country": "US",
-    "ikon": true,
-    "snowboardAllowed": true,
-    "sources": { "nws": true, "open_meteo": true, "windy": true },
-    "elevations": {
-      "base":   { "lat": 39.197, "lon": -120.235, "elev_m": 1890 },
-      "mid":    { "lat": 39.200, "lon": -120.230, "elev_m": 2300 },
-      "summit": { "lat": 39.195, "lon": -120.235, "elev_m": 2760 }
-    },
-    "links": {
-      "official": "https://www.palisadestahoe.com/",
-      "cams": ["https://www.palisadestahoe.com/mountain-information/webcams"],
-      "dot": ["https://quickmap.dot.ca.gov/"]
-    }
-  }
+     {
+          "id": "killington",
+          "name": "Killington, VT",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 43.626,
+                    "lon": -72.796,
+                    "elev_m": 520
+               },
+               "mid": {
+                    "lat": 43.61,
+                    "lon": -72.811,
+                    "elev_m": 900
+               },
+               "summit": {
+                    "lat": 43.604,
+                    "lon": -72.82,
+                    "elev_m": 1290
+               }
+          },
+          "links": {
+               "official": "https://www.killington.com/",
+               "cams": [
+                    "https://www.killington.com/the-mountain/mountain-report/webcams"
+               ],
+               "dot": [
+                    "https://newengland511.org/"
+               ]
+          }
+     },
+     {
+          "id": "sugarbush_lincoln",
+          "name": "Sugarbush (Lincoln Peak), VT",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 44.134,
+                    "lon": -72.884,
+                    "elev_m": 455
+               },
+               "mid": {
+                    "lat": 44.134,
+                    "lon": -72.895,
+                    "elev_m": 850
+               },
+               "summit": {
+                    "lat": 44.135,
+                    "lon": -72.894,
+                    "elev_m": 1200
+               }
+          },
+          "links": {
+               "official": "https://www.sugarbush.com/",
+               "cams": [
+                    "https://www.sugarbush.com/mountain/webcams"
+               ],
+               "dot": [
+                    "https://newengland511.org/"
+               ]
+          }
+     },
+     {
+          "id": "stratton",
+          "name": "Stratton, VT",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 43.0865,
+                    "lon": -72.9249,
+                    "elev_m": 570
+               },
+               "mid": {
+                    "lat": 43.0865,
+                    "lon": -72.9255,
+                    "elev_m": 792
+               },
+               "summit": {
+                    "lat": 43.0865,
+                    "lon": -72.9259,
+                    "elev_m": 1200
+               }
+          },
+          "links": {
+               "official": "https://www.stratton.com/",
+               "cams": [
+                    "https://www.stratton.com/mountain/webcams"
+               ],
+               "dot": [
+                    "https://newengland511.org/"
+               ]
+          }
+     },
+     {
+          "id": "sugarloaf",
+          "name": "Sugarloaf, ME",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 45.03139,
+                    "lon": -70.31306,
+                    "elev_m": 432
+               },
+               "mid": {
+                    "lat": 45.0315,
+                    "lon": -70.3132,
+                    "elev_m": 900
+               },
+               "summit": {
+                    "lat": 45.03168,
+                    "lon": -70.31333,
+                    "elev_m": 1291
+               }
+          },
+          "links": {
+               "official": "https://www.sugarloaf.com/",
+               "cams": [
+                    "https://www.sugarloaf.com/webcams"
+               ],
+               "dot": [
+                    "https://511maine.org/"
+               ]
+          }
+     },
+     {
+          "id": "loon",
+          "name": "Loon Mountain, NH",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 44.0369,
+                    "lon": -71.6214,
+                    "elev_m": 290
+               },
+               "mid": {
+                    "lat": 44.0378,
+                    "lon": -71.6228,
+                    "elev_m": 650
+               },
+               "summit": {
+                    "lat": 44.0387,
+                    "lon": -71.6255,
+                    "elev_m": 933
+               }
+          },
+          "links": {
+               "official": "https://www.loonmtn.com/",
+               "cams": [
+                    "https://www.loonmtn.com/webcams"
+               ],
+               "dot": [
+                    "https://www.nh511.com/"
+               ]
+          }
+     },
+     {
+          "id": "sunday_river",
+          "name": "Sunday River, ME",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 44.4735,
+                    "lon": -70.8585,
+                    "elev_m": 260
+               },
+               "mid": {
+                    "lat": 44.4739,
+                    "lon": -70.8571,
+                    "elev_m": 600
+               },
+               "summit": {
+                    "lat": 44.4749,
+                    "lon": -70.8556,
+                    "elev_m": 954
+               }
+          },
+          "links": {
+               "official": "https://www.sundayriver.com/",
+               "cams": [
+                    "https://www.sundayriver.com/mountain/webcams"
+               ],
+               "dot": [
+                    "https://511maine.org/"
+               ]
+          }
+     },
+     {
+          "id": "camelback_pa",
+          "name": "Camelback Resort, PA",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 41.0489,
+                    "lon": -75.3515,
+                    "elev_m": 410
+               },
+               "mid": {
+                    "lat": 41.0505,
+                    "lon": -75.353,
+                    "elev_m": 550
+               },
+               "summit": {
+                    "lat": 41.0521,
+                    "lon": -75.3544,
+                    "elev_m": 620
+               }
+          },
+          "links": {
+               "official": "https://www.camelbackresort.com/",
+               "cams": [
+                    "https://www.camelbackresort.com/webcams"
+               ],
+               "dot": [
+                    "https://511pa.com/"
+               ]
+          }
+     },
+     {
+          "id": "blue_mountain_pa",
+          "name": "Blue Mountain, PA",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 40.8103,
+                    "lon": -75.5209,
+                    "elev_m": 140
+               },
+               "mid": {
+                    "lat": 40.8087,
+                    "lon": -75.5219,
+                    "elev_m": 250
+               },
+               "summit": {
+                    "lat": 40.8073,
+                    "lon": -75.523,
+                    "elev_m": 470
+               }
+          },
+          "links": {
+               "official": "https://www.skibluemt.com/",
+               "cams": [
+                    "https://www.skibluemt.com/webcams"
+               ],
+               "dot": [
+                    "https://511pa.com/"
+               ]
+          }
+     },
+     {
+          "id": "snowshoe",
+          "name": "Snowshoe Mountain, WV",
+          "region": "NE",
+          "country": "US",
+          "ikon": true,
+          "snowboardAllowed": true,
+          "sources": {
+               "nws": true,
+               "open_meteo": true,
+               "windy": true
+          },
+          "elevations": {
+               "base": {
+                    "lat": 38.401,
+                    "lon": -79.997,
+                    "elev_m": 1420
+               },
+               "mid": {
+                    "lat": 38.411,
+                    "lon": -79.992,
+                    "elev_m": 1425
+               },
+               "summit": {
+                    "lat": 38.419,
+                    "lon": -79.987,
+                    "elev_m": 1500
+               }
+          },
+          "links": {
+               "official": "https://www.snowshoemtn.com/",
+               "cams": [
+                    "https://www.snowshoemtn.com/webcams"
+               ],
+               "dot": [
+                    "https://511wv.gov/"
+               ]
+          }
+     }
 ]
