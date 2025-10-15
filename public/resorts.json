@@ -1,0 +1,132 @@
+[
+  {
+    "id": "killington",
+    "name": "Killington, VT",
+    "region": "NE",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 43.626, "lon": -72.796, "elev_m": 520 },
+      "mid":    { "lat": 43.610, "lon": -72.811, "elev_m": 900 },
+      "summit": { "lat": 43.604, "lon": -72.820, "elev_m": 1290 }
+    },
+    "links": {
+      "official": "https://www.killington.com/",
+      "cams": ["https://www.killington.com/the-mountain/mountain-report/webcams"],
+      "dot": ["https://newengland511.org/"]
+    }
+  },
+  {
+    "id": "sugarbush_lincoln",
+    "name": "Sugarbush (Lincoln Peak), VT",
+    "region": "NE",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 44.134, "lon": -72.884, "elev_m": 455 },
+      "mid":    { "lat": 44.134, "lon": -72.895, "elev_m": 850 },
+      "summit": { "lat": 44.135, "lon": -72.894, "elev_m": 1200 }
+    },
+    "links": {
+      "official": "https://www.sugarbush.com/",
+      "cams": ["https://www.sugarbush.com/mountain/webcams"],
+      "dot": ["https://newengland511.org/"]
+    }
+  },
+  {
+    "id": "snowbird_hidden_peak",
+    "name": "Snowbird (Hidden Peak), UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.582, "lon": -111.649, "elev_m": 2365 },
+      "mid":    { "lat": 40.579, "lon": -111.655, "elev_m": 2700 },
+      "summit": { "lat": 40.581, "lon": -111.657, "elev_m": 3350 }
+    },
+    "links": {
+      "official": "https://www.snowbird.com/",
+      "cams": ["https://www.snowbird.com/mountain-cams/"],
+      "dot": ["https://udottraffic.utah.gov/"]
+    },
+    "snotel": ["1147:UTA:Snowbird", "963:UTA:Mill-D North"]
+  },
+  {
+    "id": "palisades_tahoe",
+    "name": "Palisades Tahoe, CA",
+    "region": "Tahoe",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.197, "lon": -120.235, "elev_m": 1890 },
+      "mid":    { "lat": 39.200, "lon": -120.230, "elev_m": 2300 },
+      "summit": { "lat": 39.195, "lon": -120.235, "elev_m": 2760 }
+    },
+    "links": {
+      "official": "https://www.palisadestahoe.com/",
+      "cams": ["https://www.palisadestahoe.com/mountain-information/webcams"],
+      "dot": ["https://quickmap.dot.ca.gov/"]
+    }
+  }
+]
+
+//   // ----- STUBS (need lat/lon/elev and links verified; NWS usable only in US) -----
+
+//   { "id": "sierra_at_tahoe", "name": "Sierra-at-Tahoe, CA", "region": "Tahoe", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "mammoth_mountain", "name": "Mammoth Mountain, CA", "region": "Sierra", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "june_mountain", "name": "June Mountain, CA", "region": "Sierra", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "big_bear", "name": "Big Bear Mountain Resort (Bear/Summit), CA", "region": "SoCal", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "snow_valley", "name": "Snow Valley, CA", "region": "SoCal", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+
+//   { "id": "sun_valley", "name": "Sun Valley, ID", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "alyeska", "name": "Alyeska Resort, AK", "region": "Alaska", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "crystal_mountain_wa", "name": "Crystal Mountain Resort, WA", "region": "PNW", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "snoqualmie", "name": "The Summit at Snoqualmie, WA", "region": "PNW", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "mt_bachelor", "name": "Mt. Bachelor, OR", "region": "PNW", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "schweitzer", "name": "Schweitzer, ID", "region": "PNW", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+
+//   { "id": "aspen_snowmass", "name": "Aspen Snowmass, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "steamboat", "name": "Steamboat, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "winter_park", "name": "Winter Park Resort, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "copper_mountain", "name": "Copper Mountain, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "arapahoe_basin", "name": "Arapahoe Basin, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "eldora", "name": "Eldora Mountain Resort, CO", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "jackson_hole", "name": "Jackson Hole Mountain Resort, WY", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "big_sky", "name": "Big Sky Resort, MT", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "taos", "name": "Taos Ski Valley, NM", "region": "Rockies", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+
+//   { "id": "deer_valley", "name": "Deer Valley Resort, UT", "region": "Wasatch", "country": "US", "ikon": true, "snowboardAllowed": false, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "solitude", "name": "Solitude Mountain Resort, UT", "region": "Wasatch", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "brighton", "name": "Brighton, UT", "region": "Wasatch", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "alta", "name": "Alta Ski Area, UT", "region": "Wasatch", "country": "US", "ikon": true, "snowboardAllowed": false, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "snowbasin", "name": "Snowbasin, UT", "region": "Wasatch", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+
+//   { "id": "stratton", "name": "Stratton, VT", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "pico", "name": "Pico Mountain (Killington), VT", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "snowshoe", "name": "Snowshoe Mountain, WV", "region": "SE/NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "sunday_river", "name": "Sunday River, ME", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "sugarloaf", "name": "Sugarloaf, ME", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "loon", "name": "Loon Mountain, NH", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "camelback_pa", "name": "Camelback Resort, PA", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "blue_mountain_pa", "name": "Blue Mountain Resort, PA", "region": "NE", "country": "US", "ikon": true, "snowboardAllowed": true, "sources": {"nws": true, "open_meteo": true, "windy": true}, "needs_coords": true },
+
+//   // ----- CANADA (NWS false; use Open‑Meteo + Windy) -----
+
+//   { "id": "skibig3_banff_lakelouise_sunshine", "name": "SkiBig3 (Banff | Lake Louise | Sunshine)", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "revelstoke", "name": "Revelstoke Mountain Resort, BC", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "cypress", "name": "Cypress Mountain, BC", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "red_mountain", "name": "RED Mountain, BC", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "panorama", "name": "Panorama, BC", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "sun_peaks", "name": "Sun Peaks Resort, BC", "region": "Canada-West", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "tremblant", "name": "Tremblant, QC", "region": "Canada-East", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "le_massif", "name": "Le Massif de Charlevoix, QC", "region": "Canada-East", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true },
+//   { "id": "blue_mountain_on", "name": "Blue Mountain, ON", "region": "Canada-East", "country": "CA", "ikon": true, "snowboardAllowed": true, "sources": {"nws": false, "open_meteo": true, "windy": true}, "needs_coords": true }
+// ]

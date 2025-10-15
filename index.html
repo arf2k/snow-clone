@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snow-Chase • NWS + Windy</title>
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Snow-Chase • NWS + Windy (POC)</h1>
+      <div class="muted">Pick a target, fetch live NWS point + grid, and view Windy.</div>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <div class="controls">
+          <label for="spot">Target:</label>
+          <select id="spot"></select>
+          <label for="elev">Elevation:</label>
+          <select id="elev">
+            <option value="summit" selected>Summit</option>
+            <option value="mid">Mid</option>
+            <option value="base">Base</option>
+          </select>
+          <button id="refresh">Fetch Forecast</button>
+          <span id="status" class="muted"></span>
+        </div>
+      </section>
+
+      <div class="row" style="margin-top:16px">
+        <section class="card">
+          <h2>NWS Forecast</h2>
+          <div class="kpis">
+            <div class="kpi"><span class="muted">Temp</span><b id="kpiTemp">--</b></div>
+            <div class="kpi"><span class="muted">Wind Gust</span><b id="kpiGust">--</b></div>
+            <div class="kpi"><span class="muted">Precip Prob</span><b id="kpiPoP">--</b></div>
+          </div>
+          <div class="links">
+            <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
+            <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
+          </div>
+          <div id="periods" class="grid" style="margin-top:12px"></div>
+          <div id="error" class="err"></div>
+        </section>
+
+        <section class="card">
+          <h2>Windy Model Viewer</h2>
+          <div class="controls">
+            <label for="overlay">Overlay:</label>
+            <select id="overlay">
+              <option value="snow">Snow</option>
+              <option value="rain">Rain</option>
+              <option value="temp">Temperature</option>
+              <option value="wind">Wind</option>
+            </select>
+            <label for="zoom">Zoom:</label>
+            <select id="zoom"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
+          </div>
+          <iframe id="windy" title="Windy" loading="lazy"></iframe>
+          <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:16px">
+        <h2>Reality-Checks</h2>
+        <div id="realLinks" class="links"></div>
+      </section>
+    </main>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
