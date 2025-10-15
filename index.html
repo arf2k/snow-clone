@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Snow-Chase • NWS + Windy</title>
     <link rel="stylesheet" href="styles/main.css" />
+    <style>
+      /* tiny tab styles kept here to avoid touching main.css yet */
+      .tabs { display:flex; gap:8px; align-items:center; margin:10px 0 6px; }
+      .tab { background:#0b1220; color:#e5e7eb; border:1px solid #1f2937; border-radius:999px; padding:8px 12px; font-size:13px; cursor:pointer; }
+      .tab.active { border-color:#60a5fa; box-shadow:0 0 0 1px #60a5fa inset; }
+      [hidden] { display:none !important; }
+      table.hourly { width:100%; border-collapse: collapse; font-size: 13px; }
+      table.hourly th, table.hourly td { border-bottom:1px solid #1f2937; padding:8px 6px; text-align:left; }
+      table.hourly th { color:#9ca3af; font-weight:600; }
+      table.hourly td.num { text-align:right; font-variant-numeric: tabular-nums; }
+    </style>
   </head>
   <body>
     <header>
@@ -31,17 +42,58 @@
       <div class="row" style="margin-top:16px">
         <section class="card">
           <h2>NWS Forecast</h2>
-          <div class="kpis">
-            <div class="kpi"><span class="muted">Temp</span><b id="kpiTemp">--</b></div>
-            <div class="kpi"><span class="muted">Wind Gust</span><b id="kpiGust">--</b></div>
-            <div class="kpi"><span class="muted">Precip Prob</span><b id="kpiPoP">--</b></div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button id="tabForecast" class="tab active" type="button">Forecast</button>
+            <button id="tabHourly" class="tab" type="button">Hourly</button>
           </div>
-          <div class="links">
-            <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
-            <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
+
+          <!-- Pane: Forecast (existing content) -->
+          <div id="paneForecast">
+            <div class="kpis">
+              <div class="kpi"><span class="muted">Temp</span><b id="kpiTemp">--</b></div>
+              <div class="kpi"><span class="muted">Wind Gust</span><b id="kpiGust">--</b></div>
+              <div class="kpi"><span class="muted">Precip Prob</span><b id="kpiPoP">--</b></div>
+            </div>
+
+            <!-- new totals row (already supported by your JS) -->
+            <div class="kpis" style="margin-top:10px">
+              <div class="kpi"><span class="muted">Snow 24h</span><b id="kpiSnow24">--</b></div>
+              <div class="kpi"><span class="muted">Snow 72h</span><b id="kpiSnow72">--</b></div>
+              <div class="kpi"><span class="muted">QPF 24h</span><b id="kpiQpf24">--</b></div>
+            </div>
+
+            <div class="links" style="margin-top:10px">
+              <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
+              <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
+            </div>
+
+            <div id="periods" class="grid" style="margin-top:12px"></div>
+            <div id="error" class="err"></div>
           </div>
-          <div id="periods" class="grid" style="margin-top:12px"></div>
-          <div id="error" class="err"></div>
+
+          <!-- Pane: Hourly (new; we wire this next) -->
+          <div id="paneHourly" hidden>
+            <div class="links" style="margin-bottom:8px">
+              <a id="linkHourly" target="_blank" rel="noopener">Hourly JSON ▸</a>
+            </div>
+            <table class="hourly" aria-label="Hourly forecast">
+              <thead>
+                <tr>
+                  <th style="width:34%">Time</th>
+                  <th>Wx</th>
+                  <th class="num">Temp</th>
+                  <th class="num">PoP</th>
+                  <th class="num">Wind</th>
+                  <th class="num">Gust</th>
+                </tr>
+              </thead>
+              <tbody id="hourlyBody">
+                <!-- rows injected -->
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section class="card">

@@ -1,51 +1,114 @@
+// src/ui.js
+
+// ---- element handles ----
 export const els = {
+  // controls
   spot: document.getElementById('spot'),
   elev: document.getElementById('elev'),
   refresh: document.getElementById('refresh'),
+  overlaySel: document.getElementById('overlay'),
+  zoomSel: document.getElementById('zoom'),
+
+  // status + errors
   status: document.getElementById('status'),
-  periods: document.getElementById('periods'),
   err: document.getElementById('error'),
+
+  // panes & tabs
+  tabForecast: document.getElementById('tabForecast'),
+  tabHourly: document.getElementById('tabHourly'),
+  paneForecast: document.getElementById('paneForecast'),
+  paneHourly: document.getElementById('paneHourly'),
+
+  // forecast areas (period view)
+  periods: document.getElementById('periods'),
+
+  // KPI (primary)
   kpiTemp: document.getElementById('kpiTemp'),
   kpiGust: document.getElementById('kpiGust'),
   kpiPoP: document.getElementById('kpiPoP'),
+
+  // KPI (totals)
+  kpiSnow24: document.getElementById('kpiSnow24'),
+  kpiSnow72: document.getElementById('kpiSnow72'),
+  kpiQpf24: document.getElementById('kpiQpf24'),
+
+  // links
   linkPoint: document.getElementById('linkPoint'),
   linkGrid: document.getElementById('linkGrid'),
-  overlaySel: document.getElementById('overlay'),
-  zoomSel: document.getElementById('zoom'),
+  linkHourly: document.getElementById('linkHourly'),
+  realLinks: document.getElementById('realLinks'),
+
+  // hourly table
+  hourlyBody: document.getElementById('hourlyBody'),
+
+  // windy
   windyFrame: document.getElementById('windy'),
   openWindy: document.getElementById('openWindy'),
-  realLinks: document.getElementById('realLinks'),
 };
 
-export function setStatus(msg){ els.status.textContent = msg || ''; }
-export function setError(msg){ els.err.textContent = msg || ''; }
+// ---- small helpers ----
+export function setStatus(msg) { els.status.textContent = msg || ''; }
+export function setError(msg)  { els.err.textContent = msg || ''; }
 export function clearForecast(){ els.periods.innerHTML = ''; setError(''); }
 
-export function renderResortOptions(resorts){
-  if (!resorts.length) {
+// ---- tabs ----
+export function initTabs() {
+  if (!els.tabForecast || !els.tabHourly) return;
+
+  const activate = (which) => {
+    const isForecast = which === 'forecast';
+    els.tabForecast.classList.toggle('active', isForecast);
+    els.tabHourly.classList.toggle('active', !isForecast);
+    els.paneForecast.hidden = !isForecast;
+    els.paneHourly.hidden = isForecast;
+  };
+
+  els.tabForecast.addEventListener('click', () => activate('forecast'));
+  els.tabHourly.addEventListener('click', () => activate('hourly'));
+
+  // default to Forecast on load
+  activate('forecast');
+}
+
+// ---- dropdown + links ----
+export function renderResortOptions(resorts) {
+  if (!Array.isArray(resorts) || !resorts.length) {
     els.spot.innerHTML = '<option value="">(no resorts found)</option>';
     return;
   }
-  els.spot.innerHTML = resorts.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  els.spot.innerHTML = resorts
+    .map(r => `<option value="${r.id}">${r.name}</option>`)
+    .join('');
 }
 
-export function renderRealityLinks(r){
+export function renderRealityLinks(r) {
   const items = [];
-  (r.links?.cams || []).forEach(url => items.push(`<a href="${url}" target="_blank" rel="noopener">Cams</a>`));
-  (r.links?.dot  || []).forEach(url => items.push(`<a href="${url}" target="_blank" rel="noopener">Roads</a>`));
-  if (r.links?.official) items.push(`<a href="${r.links.official}" target="_blank" rel="noopener">Official</a>`);
+  (r?.links?.cams || []).forEach(url =>
+    items.push(`<a href="${url}" target="_blank" rel="noopener">Cams</a>`));
+  (r?.links?.dot || []).forEach(url =>
+    items.push(`<a href="${url}" target="_blank" rel="noopener">Roads</a>`));
+  if (r?.links?.official)
+    items.push(`<a href="${r.links.official}" target="_blank" rel="noopener">Official</a>`);
   els.realLinks.innerHTML = items.join(' • ');
 }
 
-export function renderKPIs(firstPeriod, grid){
-  els.kpiTemp.textContent = firstPeriod ? `${firstPeriod.temperature}°${firstPeriod.temperatureUnit}` : '--';
+// ---- forecast (period view) ----
+export function renderKPIs(firstPeriod, grid) {
+  // temperature
+  els.kpiTemp.textContent = firstPeriod
+    ? `${firstPeriod.temperature}°${firstPeriod.temperatureUnit}`
+    : '--';
+
+  // wind gust or speed
   const gust = firstPeriod?.windGust || firstPeriod?.windSpeed || '--';
   els.kpiGust.textContent = gust;
+
+  // PoP from grid (first value)
   const pop = grid?.properties?.probabilityOfPrecipitation?.values?.[0]?.value;
   els.kpiPoP.textContent = (pop != null) ? `${Math.round(pop)}%` : '--';
 }
 
-export function renderPeriods(forecast){
+export function renderPeriods(forecast) {
   const periods = forecast?.properties?.periods || [];
   els.periods.innerHTML = periods.slice(0, 8).map(p => `
     <div class="period">
@@ -54,7 +117,64 @@ export function renderPeriods(forecast){
         <span class="muted">${p.startTime ? new Date(p.startTime).toLocaleString() : ''}</span>
       </div>
       <div style="margin-top:6px">${p.detailedForecast || p.shortForecast}</div>
-      <div class="muted" style="margin-top:6px">Wind: ${p.windSpeed}${p.windGust ? ` (gust ${p.windGust})` : ''}</div>
+      <div class="muted" style="margin-top:6px">
+        Wind: ${p.windSpeed}${p.windGust ? ` (gust ${p.windGust})` : ''}
+      </div>
     </div>
   `).join('');
+}
+
+export function renderTotals({ snow24, snow72, qpf24 }) {
+  els.kpiSnow24.textContent = (snow24 != null) ? `${snow24.toFixed(1)}"` : '--';
+  els.kpiSnow72.textContent = (snow72 != null) ? `${snow72.toFixed(1)}"` : '--';
+  els.kpiQpf24.textContent  = (qpf24  != null) ? `${qpf24.toFixed(2)}"`  : '--';
+}
+
+// ---- hourly view ----
+function fmtTime(s) {
+  const d = new Date(s);
+  return isNaN(d) ? '' : d.toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
+}
+function pct(n) {
+  return (n == null || Number.isNaN(n)) ? '--' : `${Math.round(n)}%`;
+}
+function num(n, unit='') {
+  return (n == null || Number.isNaN(n)) ? '--' : `${n}${unit}`;
+}
+
+/**
+ * NWS hourly JSON shape:
+ * {
+ *   properties: {
+ *     periods: [
+ *       { startTime, temperature, temperatureUnit, probabilityOfPrecipitation: { value }, windSpeed, windGust, shortForecast }
+ *     ]
+ *   }
+ * }
+ */
+export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
+  const periods = hourlyJson?.properties?.periods || [];
+  const now = Date.now();
+  const maxTime = now + limitHours * 3600000;
+
+  const rows = [];
+  for (const p of periods) {
+    const t = Date.parse(p.startTime);
+    if (isNaN(t) || t > maxTime) continue;
+
+    rows.push(`
+      <tr>
+        <td>${fmtTime(p.startTime)}</td>
+        <td>${p.shortForecast ?? ''}</td>
+        <td class="num">${num(p.temperature, `°${p.temperatureUnit ?? ''}`)}</td>
+        <td class="num">${pct(p?.probabilityOfPrecipitation?.value)}</td>
+        <td class="num">${p.windSpeed ?? '--'}</td>
+        <td class="num">${p.windGust ?? '--'}</td>
+      </tr>
+    `);
+  }
+
+  els.hourlyBody.innerHTML = rows.join('') || `
+    <tr><td colspan="6" class="muted">No hourly data available.</td></tr>
+  `;
 }
