@@ -22,6 +22,10 @@ export function setError(msg){ els.err.textContent = msg || ''; }
 export function clearForecast(){ els.periods.innerHTML = ''; setError(''); }
 
 export function renderResortOptions(resorts){
+  if (!resorts.length) {
+    els.spot.innerHTML = '<option value="">(no resorts found)</option>';
+    return;
+  }
   els.spot.innerHTML = resorts.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 }
 

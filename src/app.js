@@ -4,18 +4,6 @@ import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { setWindyFrame } from './windy.js';
 
 let RESORTS = [];
-let CURRENT = null;
-
-async function loadResorts(){
-  const r = await fetch(RESORTS_JSON_URL);
-  if (!r.ok) throw new Error(`Failed to load resorts.json (${r.status})`);
-  RESORTS = await r.json();
-  // Filter: only those with coords ready (no "needs_coords")
-  const ready = RESORTS.filter(r => !r.needs_coords);
-  renderResortOptions(ready);
-  CURRENT = ready[0]?.id;
-  els.spot.value = CURRENT;
-}
 
 function getSelected(){
   const r = RESORTS.find(x => x.id === els.spot.value);
@@ -24,25 +12,58 @@ function getSelected(){
   return { r, elevKey, elev };
 }
 
+async function loadResorts(){
+  setStatus('Loading resorts.json…');
+  els.refresh.disabled = true;
+  try {
+    const r = await fetch(RESORTS_JSON_URL, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`resorts.json HTTP ${r.status}`);
+    const json = await r.json();
+    // Only include entries that have full elevation coords
+    RESORTS = json.filter(x => x?.elevations?.summit?.lat && x?.elevations?.summit?.lon);
+    if (!RESORTS.length) throw new Error('resorts.json loaded but no ready entries (check elevations).');
+
+    renderResortOptions(RESORTS);
+    els.spot.value = RESORTS[0].id;
+    setStatus('Resorts loaded ✓');
+    els.refresh.disabled = false;
+  } catch (e) {
+    console.error('Failed to load resorts.json:', e);
+    setError(`Failed to load resorts.json: ${e.message}\nURL: ${RESORTS_JSON_URL}`);
+    setStatus('Error');
+  }
+}
+
 async function run(){
-  setError(''); clearForecast(); setStatus('Fetching NWS…');
+  setError(''); clearForecast();
+  if (els.refresh.disabled) { setStatus('Waiting for resorts…'); return; }
+
+  setStatus('Fetching NWS…');
   const { r, elev } = getSelected();
-  if (!r || !elev){ setError('Missing resort/elevation'); setStatus(''); return; }
+  if (!r) { setError('No resort selected (dropdown empty). resorts.json likely failed to load.'); setStatus('Error'); return; }
+  if (!elev) { setError(`Selected resort "${r.name}" missing "${els.elev.value}" coordinates.`); setStatus('Error'); return; }
 
   try {
     const ep = await getNwsEndpoints(elev.lat, elev.lon);
-    const [forecast, grid] = await Promise.all([ fetchForecast(ep.forecastUrl), fetchGrid(ep.gridUrl) ]);
+    const [forecast, grid] = await Promise.all([
+      fetchForecast(ep.forecastUrl),
+      fetchGrid(ep.gridUrl),
+    ]);
     renderKPIs(forecast?.properties?.periods?.[0], grid);
     renderPeriods(forecast);
     els.linkPoint.href = ep.forecastUrl;
-    els.linkGrid.href  = ep.gridUrl;
+    els.linkGrid.href = ep.gridUrl;
 
-    setWindyFrame(els.windyFrame, els.openWindy, { lat: elev.lat, lon: elev.lon, overlay: els.overlaySel.value || DEFAULT_OVERLAY, zoom: Number(els.zoomSel.value || DEFAULT_ZOOM) });
+    setWindyFrame(els.windyFrame, els.openWindy, {
+      lat: elev.lat, lon: elev.lon,
+      overlay: els.overlaySel.value || DEFAULT_OVERLAY,
+      zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
+    });
     renderRealityLinks(r);
     setStatus('OK (live)');
-  } catch (e){
+  } catch (e) {
     console.error(e);
-    setError(String(e.message));
+    setError(`NWS fetch failed: ${e.message}`);
     setStatus('Error');
   }
 }
@@ -53,4 +74,5 @@ els.zoomSel.addEventListener('change', run);
 els.spot.addEventListener('change', run);
 els.elev.addEventListener('change', run);
 
-loadResorts().then(run).catch(e => { setError(String(e.message)); setStatus(''); });
+await loadResorts();
+run();
