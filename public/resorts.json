@@ -349,5 +349,501 @@
                     "https://511wv.gov/"
                ]
           }
-     }
+     },
+     
+  {
+    "id": "palisades_tahoe",
+    "name": "Palisades Tahoe, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.1970, "lon": -120.2355, "elev_m": 1890 },
+      "summit": { "lat": 39.1950, "lon": -120.2350, "elev_m": 2760 },
+      "mid":    { "lat": 39.1960, "lon": -120.2352, "elev_m": 2325 }
+    },
+    "links": {
+      "official": "https://www.palisadestahoe.com/",
+      "cams": ["https://www.palisadestahoe.com/mountain-information/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "sierra_at_tahoe",
+    "name": "Sierra-at-Tahoe, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 38.8097, "lon": -120.0811, "elev_m": 2024 },
+      "summit": { "lat": 38.8120, "lon": -120.0815, "elev_m": 2698 },
+      "mid":    { "lat": 38.8108, "lon": -120.0813, "elev_m": 2361 }
+    },
+    "links": {
+      "official": "https://www.sierraattahoe.com/",
+      "cams": ["https://www.sierraattahoe.com/mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "mammoth_mountain",
+    "name": "Mammoth Mountain, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 37.6308, "lon": -119.0326, "elev_m": 2424 },
+      "summit": { "lat": 37.6307, "lon": -119.0326, "elev_m": 3369 },
+      "mid":    { "lat": 37.6307, "lon": -119.0326, "elev_m": 2896 }
+    },
+    "links": {
+      "official": "https://www.mammothmountain.com/",
+      "cams": ["https://www.mammothmountain.com/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "june_mountain",
+    "name": "June Mountain, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 37.7679, "lon": -119.0928, "elev_m": 2300 },
+      "summit": { "lat": 37.7403, "lon": -119.0730, "elev_m": 3090 },
+      "mid":    { "lat": 37.7541, "lon": -119.0829, "elev_m": 2695 }
+    },
+    "links": {
+      "official": "https://www.junemountain.com/",
+      "cams": ["https://www.junemountain.com/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "big_bear_snow_summit",
+    "name": "Big Bear – Snow Summit, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 34.2286, "lon": -116.8911, "elev_m": 2130 },
+      "summit": { "lat": 34.2207, "lon": -116.8929, "elev_m": 2495 },
+      "mid":    { "lat": 34.2247, "lon": -116.8920, "elev_m": 2313 }
+    },
+    "links": {
+      "official": "https://www.bigbearmountainresort.com/",
+      "cams": ["https://www.bigbearmountainresort.com/conditions/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "snow_valley",
+    "name": "Snow Valley, CA",
+    "region": "West",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 34.2234, "lon": -117.0374, "elev_m": 2073 },
+      "summit": { "lat": 34.2234, "lon": -117.0374, "elev_m": 2390 },
+      "mid":    { "lat": 34.2234, "lon": -117.0374, "elev_m": 2232 }
+    },
+    "links": {
+      "official": "https://www.bigbearmountainresort.com/snow-valley",
+      "cams": ["https://www.bigbearmountainresort.com/conditions/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "crystal_mountain_wa",
+    "name": "Crystal Mountain, WA",
+    "region": "Pacific NW",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 46.9358, "lon": -121.4783, "elev_m": 1341 },
+      "summit": { "lat": 46.9349, "lon": -121.5003, "elev_m": 2092 },
+      "mid":    { "lat": 46.9354, "lon": -121.4893, "elev_m": 1717 }
+    },
+    "links": {
+      "official": "https://www.crystalmountainresort.com/",
+      "cams": ["https://www.crystalmountainresort.com/the-mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "snoqualmie",
+    "name": "The Summit at Snoqualmie, WA",
+    "region": "Pacific NW",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 47.4250, "lon": -121.4147, "elev_m": 795 },
+      "summit": { "lat": 47.4240, "lon": -121.4160, "elev_m": 1652 },
+      "mid":    { "lat": 47.4245, "lon": -121.4154, "elev_m": 1224 }
+    },
+    "links": {
+      "official": "https://summitatsnoqualmie.com/",
+      "cams": ["https://summitatsnoqualmie.com/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "mt_bachelor",
+    "name": "Mt. Bachelor, OR",
+    "region": "Pacific NW",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 43.9793, "lon": -121.6884, "elev_m": 1930 },
+      "summit": { "lat": 43.9793, "lon": -121.6890, "elev_m": 2764 },
+      "mid":    { "lat": 43.9793, "lon": -121.6887, "elev_m": 2347 }
+    },
+    "links": {
+      "official": "https://www.mtbachelor.com/",
+      "cams": ["https://www.mtbachelor.com/conditions-report/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "schweitzer",
+    "name": "Schweitzer, ID",
+    "region": "Pacific NW",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 48.3866, "lon": -116.6133, "elev_m": 1207 },
+      "summit": { "lat": 48.3804, "lon": -116.6337, "elev_m": 1951 },
+      "mid":    { "lat": 48.3835, "lon": -116.6235, "elev_m": 1580 }
+    },
+    "links": {
+      "official": "https://www.schweitzer.com/",
+      "cams": ["https://www.schweitzer.com/our-mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "sun_valley_bald",
+    "name": "Sun Valley – Bald Mountain, ID",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 43.6417, "lon": -114.4662, "elev_m": 1753 },
+      "summit": { "lat": 43.6549, "lon": -114.4092, "elev_m": 2791 },
+      "mid":    { "lat": 43.6483, "lon": -114.4377, "elev_m": 2272 }
+    },
+    "links": {
+      "official": "https://www.sunvalley.com/",
+      "cams": ["https://www.sunvalley.com/mountain/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "alyeska",
+    "name": "Alyeska, AK",
+    "region": "Alaska",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 60.9586, "lon": -149.1107, "elev_m": 76 },
+      "summit": { "lat": 60.9568, "lon": -149.0611, "elev_m": 1201 },
+      "mid":    { "lat": 60.9577, "lon": -149.0859, "elev_m": 639 }
+    },
+    "links": {
+      "official": "https://alyeskaresort.com/",
+      "cams": ["https://alyeskaresort.com/mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "snowmass",
+    "name": "Snowmass (Aspen Snowmass), CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.2130, "lon": -106.9378, "elev_m": 2473 },
+      "summit": { "lat": 39.2450, "lon": -106.9400, "elev_m": 3813 },
+      "mid":    { "lat": 39.2290, "lon": -106.9389, "elev_m": 3143 }
+    },
+    "links": {
+      "official": "https://www.aspensnowmass.com/",
+      "cams": ["https://www.aspensnowmass.com/cams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "steamboat",
+    "name": "Steamboat, CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.4848, "lon": -106.8317, "elev_m": 2103 },
+      "summit": { "lat": 40.4550, "lon": -106.7700, "elev_m": 3221 },
+      "mid":    { "lat": 40.4699, "lon": -106.8008, "elev_m": 2662 }
+    },
+    "links": {
+      "official": "https://www.steamboat.com/",
+      "cams": ["https://www.steamboat.com/the-mountain/live-cams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "winter_park",
+    "name": "Winter Park, CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.8850, "lon": -105.7590, "elev_m": 2743 },
+      "summit": { "lat": 39.8970, "lon": -105.7610, "elev_m": 3676 },
+      "mid":    { "lat": 39.8910, "lon": -105.7600, "elev_m": 3210 }
+    },
+    "links": {
+      "official": "https://www.winterparkresort.com/",
+      "cams": ["https://www.winterparkresort.com/the-mountain/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "copper_mountain",
+    "name": "Copper Mountain, CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.5014, "lon": -106.1516, "elev_m": 2961 },
+      "summit": { "lat": 39.4689, "lon": -106.1570, "elev_m": 3787 },
+      "mid":    { "lat": 39.4852, "lon": -106.1543, "elev_m": 3374 }
+    },
+    "links": {
+      "official": "https://www.coppercolorado.com/",
+      "cams": ["https://www.coppercolorado.com/the-mountain/mountain-conditions/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "arapahoe_basin",
+    "name": "Arapahoe Basin (A-Basin), CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.6412, "lon": -105.8720, "elev_m": 3286 },
+      "summit": { "lat": 39.6425, "lon": -105.8710, "elev_m": 3977 },
+      "mid":    { "lat": 39.6418, "lon": -105.8715, "elev_m": 3632 }
+    },
+    "links": {
+      "official": "https://www.arapahoebasin.com/",
+      "cams": ["https://www.arapahoebasin.com/mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "eldora",
+    "name": "Eldora, CO",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 39.9375, "lon": -105.5828, "elev_m": 2804 },
+      "summit": { "lat": 39.9500, "lon": -105.5670, "elev_m": 3292 },
+      "mid":    { "lat": 39.9438, "lon": -105.5749, "elev_m": 3048 }
+    },
+    "links": {
+      "official": "https://www.eldora.com/",
+      "cams": ["https://www.eldora.com/the-mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "jackson_hole",
+    "name": "Jackson Hole, WY",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 43.5876, "lon": -110.8279, "elev_m": 1923 },
+      "summit": { "lat": 43.5972, "lon": -110.8714, "elev_m": 3187 },
+      "mid":    { "lat": 43.5924, "lon": -110.8497, "elev_m": 2555 }
+    },
+    "links": {
+      "official": "https://www.jacksonhole.com/",
+      "cams": ["https://www.jacksonhole.com/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "big_sky",
+    "name": "Big Sky, MT",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 45.2602, "lon": -111.3099, "elev_m": 2073 },
+      "summit": { "lat": 45.2781, "lon": -111.4501, "elev_m": 3405 },
+      "mid":    { "lat": 45.2691, "lon": -111.3800, "elev_m": 2739 }
+    },
+    "links": {
+      "official": "https://bigskyresort.com/",
+      "cams": ["https://bigskyresort.com/mountain/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "taos",
+    "name": "Taos Ski Valley, NM",
+    "region": "Rockies",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 36.5920, "lon": -105.4403, "elev_m": 2807 },
+      "summit": { "lat": 36.5615, "lon": -105.4461, "elev_m": 3805 },
+      "mid":    { "lat": 36.5768, "lon": -105.4432, "elev_m": 3306 }
+    },
+    "links": {
+      "official": "https://www.skitaos.com/",
+      "cams": ["https://www.skitaos.com/mountain/webcams/"],
+      "dot": []
+    }
+  },
+  {
+    "id": "deer_valley",
+    "name": "Deer Valley, UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": false,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.6417, "lon": -111.4662, "elev_m": 2003 },
+      "summit": { "lat": 40.6203, "lon": -111.4870, "elev_m": 2917 },
+      "mid":    { "lat": 40.6310, "lon": -111.4766, "elev_m": 2460 }
+    },
+    "links": {
+      "official": "https://www.deervalley.com/",
+      "cams": ["https://www.deervalley.com/mountain-conditions/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "solitude",
+    "name": "Solitude, UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.6187, "lon": -111.5925, "elev_m": 2435 },
+      "summit": { "lat": 40.6163, "lon": -111.6032, "elev_m": 3059 },
+      "mid":    { "lat": 40.6175, "lon": -111.5978, "elev_m": 2747 }
+    },
+    "links": {
+      "official": "https://www.solitudemountain.com/",
+      "cams": ["https://www.solitudemountain.com/mountain/webcams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "brighton",
+    "name": "Brighton, UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.5980, "lon": -111.5832, "elev_m": 2683 },
+      "summit": { "lat": 40.6036, "lon": -111.5813, "elev_m": 3200 },
+      "mid":    { "lat": 40.6008, "lon": -111.5823, "elev_m": 2942 }
+    },
+    "links": {
+      "official": "https://brightonresort.com/",
+      "cams": ["https://brightonresort.com/conditions#cams"],
+      "dot": []
+    }
+  },
+  {
+    "id": "snowbird",
+    "name": "Snowbird, UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 40.5820, "lon": -111.6490, "elev_m": 2365 },
+      "summit": { "lat": 40.5606, "lon": -111.6451, "elev_m": 3353 },
+      "mid":    { "lat": 40.5713, "lon": -111.6471, "elev_m": 2859 }
+    },
+    "links": {
+      "official": "https://www.snowbird.com/",
+      "cams": ["https://www.snowbird.com/mountain-cams/"],
+      "dot": ["https://udottraffic.utah.gov/"]
+    }
+  },
+  {
+    "id": "snowbasin",
+    "name": "Snowbasin, UT",
+    "region": "Wasatch",
+    "country": "US",
+    "ikon": true,
+    "snowboardAllowed": true,
+    "sources": { "nws": true, "open_meteo": true, "windy": true },
+    "elevations": {
+      "base":   { "lat": 41.2072, "lon": -111.8512, "elev_m": 1951 },
+      "summit": { "lat": 41.1999, "lon": -111.8820, "elev_m": 2918 },
+      "mid":    { "lat": 41.2036, "lon": -111.8666, "elev_m": 2435 }
+    },
+    "links": {
+      "official": "https://www.snowbasin.com/",
+      "cams": ["https://www.snowbasin.com/mountain/webcams/"],
+      "dot": []
+    }
+  }
 ]
+
