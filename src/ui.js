@@ -5,7 +5,7 @@ export const els = {
   // controls
   spot: document.getElementById('spot'),
   elev: document.getElementById('elev'),
-  source: document.getElementById('source'), // <-- ADDED
+  source: document.getElementById('source'),
   refresh: document.getElementById('refresh'),
   overlaySel: document.getElementById('overlay'),
   zoomSel: document.getElementById('zoom'),
@@ -37,8 +37,8 @@ export const els = {
   linkPoint: document.getElementById('linkPoint'),
   linkGrid: document.getElementById('linkGrid'),
   linkHourly: document.getElementById('linkHourly'),
-  nwsLinks: document.getElementById('nwsLinks'), // <-- ADDED
-  hourlyLinks: document.getElementById('hourlyLinks'), // <-- ADDED
+  nwsLinks: document.getElementById('nwsLinks'),
+  hourlyLinks: document.getElementById('hourlyLinks'),
   realLinks: document.getElementById('realLinks'),
 
   // hourly table
@@ -47,12 +47,18 @@ export const els = {
   // windy
   windyFrame: document.getElementById('windy'),
   openWindy: document.getElementById('openWindy'),
+
+  // SNOTEL elements
+  groundTruthCard: document.getElementById('groundTruthCard'),
+  snotelTitle: document.getElementById('snotelTitle'),
+  snotelData: document.getElementById('snotelData'),
 };
 
 // ---- small helpers ----
 export function setStatus(msg) { els.status.textContent = msg || ''; }
 export function setError(msg)  { els.err.textContent = msg || ''; }
 export function clearForecast(){ els.periods.innerHTML = ''; setError(''); }
+
 // ---- Toggles for NWS-specific UI ----
 export function showNwsLinks(visible) {
   els.nwsLinks.style.display = visible ? 'block' : 'none';
@@ -147,7 +153,7 @@ function pct(n) {
   return (n == null || Number.isNaN(n)) ? '--' : `${Math.round(n)}%`;
 }
 function num(n, unit='') {
-  return (n == null || Number.isNaN(n)) ? `${n}${unit}` : '--';
+  return (n == null || Number.isNaN(n)) ? '--' : `${n}${unit}`;
 }
 
 /**
@@ -187,5 +193,48 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
 
   els.hourlyBody.innerHTML = rows.join('') || `
     <tr><td colspan="6" class="muted">No hourly data available.</td></tr>
+  `;
+}
+
+// ---- SNOTEL ground truth ----
+
+/**
+ * Helper to format SNOTEL numbers
+ */
+function fmtNum(n, unit, decimals = 0) {
+  if (n == null) return '--';
+  return `${n.toFixed(decimals)}${unit}`;
+}
+
+/**
+ * Renders the SNOTEL data card
+ * @param {object|null} data - The parsed SNOTEL data from snotel.js
+ */
+export function renderSnotel(data) {
+  if (!data) {
+    els.groundTruthCard.hidden = true;
+    els.snotelData.innerHTML = '';
+    return;
+  }
+
+  els.groundTruthCard.hidden = false;
+  els.snotelTitle.textContent = `Ground Truth (${data.name})`;
+  els.snotelData.innerHTML = `
+    <div class="kpi">
+      <span class="muted">Current Depth</span>
+      <b>${fmtNum(data.depth, '"')}</b>
+    </div>
+    <div class="kpi">
+      <span class="muted">24h Snow</span>
+      <b>${fmtNum(data.change24h, '"')}</b>
+    </div>
+    <div class="kpi">
+      <span class="muted">Avg Temp</span>
+      <b>${fmtNum(data.temp, '°F')}</b>
+    </div>
+    <div class="kpi">
+      <span class="muted">Snow Water Eq</span>
+      <b>${fmtNum(data.wteq, '"', 1)}</b>
+    </div>
   `;
 }

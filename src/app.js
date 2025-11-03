@@ -13,10 +13,12 @@ import {
   renderHourly,
   initTabs,
   showNwsLinks,
+  renderSnotel,
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { setWindyFrame } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
+import { fetchSnotelData } from './snotel.js';
 
 let RESORTS = [];
 
@@ -258,6 +260,18 @@ async function run() {
     });
 
     renderRealityLinks(r);
+try {
+      if (r.links?.snotel) {
+        setStatus('Fetching SNOTEL…');
+        const snotelData = await fetchSnotelData(r.links.snotel);
+        renderSnotel(snotelData);
+      } else {
+        renderSnotel(null); // Hide the card if no station for this resort
+      }
+    } catch (e) {
+      console.warn('SNOTEL fetch failed:', e);
+      renderSnotel(null); // Hide card on error
+    }
 
     setStatus('OK (live)');
   } catch (e) {
@@ -266,12 +280,9 @@ async function run() {
     setStatus('Error');
   }
 }
+   
 
-// ---------------------- NEW FUNCTION ----------------------
-/**
- * Updates *only* the Windy map iframe.
- * This is called by the overlay and zoom dropdowns to avoid a full data refresh.
- */
+
 function updateWindyMap() {
   const { elev } = getSelected();
   if (!elev) return; // No resort loaded yet
