@@ -5,6 +5,7 @@ export const els = {
   // controls
   spot: document.getElementById('spot'),
   elev: document.getElementById('elev'),
+  source: document.getElementById('source'), // <-- ADDED
   refresh: document.getElementById('refresh'),
   overlaySel: document.getElementById('overlay'),
   zoomSel: document.getElementById('zoom'),
@@ -36,6 +37,8 @@ export const els = {
   linkPoint: document.getElementById('linkPoint'),
   linkGrid: document.getElementById('linkGrid'),
   linkHourly: document.getElementById('linkHourly'),
+  nwsLinks: document.getElementById('nwsLinks'), // <-- ADDED
+  hourlyLinks: document.getElementById('hourlyLinks'), // <-- ADDED
   realLinks: document.getElementById('realLinks'),
 
   // hourly table
@@ -50,6 +53,11 @@ export const els = {
 export function setStatus(msg) { els.status.textContent = msg || ''; }
 export function setError(msg)  { els.err.textContent = msg || ''; }
 export function clearForecast(){ els.periods.innerHTML = ''; setError(''); }
+// ---- Toggles for NWS-specific UI ----
+export function showNwsLinks(visible) {
+  els.nwsLinks.style.display = visible ? 'block' : 'none';
+  els.hourlyLinks.style.display = visible ? 'block' : 'none';
+}
 
 // ---- tabs ----
 export function initTabs() {
@@ -139,17 +147,17 @@ function pct(n) {
   return (n == null || Number.isNaN(n)) ? '--' : `${Math.round(n)}%`;
 }
 function num(n, unit='') {
-  return (n == null || Number.isNaN(n)) ? '--' : `${n}${unit}`;
+  return (n == null || Number.isNaN(n)) ? `${n}${unit}` : '--';
 }
 
 /**
  * NWS hourly JSON shape:
  * {
- *   properties: {
- *     periods: [
- *       { startTime, temperature, temperatureUnit, probabilityOfPrecipitation: { value }, windSpeed, windGust, shortForecast }
- *     ]
- *   }
+ * properties: {
+ * periods: [
+ * { startTime, temperature, temperatureUnit, probabilityOfPrecipitation: { value }, windSpeed, windGust, shortForecast }
+ * ]
+ * }
  * }
  */
 export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
@@ -161,13 +169,16 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   for (const p of periods) {
     const t = Date.parse(p.startTime);
     if (isNaN(t) || t > maxTime) continue;
+    
+    // NWS PoP is nested, OM is not. Handle both.
+    const popVal = p?.probabilityOfPrecipitation?.value ?? p?.probabilityOfPrecipitation;
 
     rows.push(`
       <tr>
         <td>${fmtTime(p.startTime)}</td>
         <td>${p.shortForecast ?? ''}</td>
         <td class="num">${num(p.temperature, `°${p.temperatureUnit ?? ''}`)}</td>
-        <td class="num">${pct(p?.probabilityOfPrecipitation?.value)}</td>
+        <td class="num">${pct(popVal)}</td>
         <td class="num">${p.windSpeed ?? '--'}</td>
         <td class="num">${p.windGust ?? '--'}</td>
       </tr>

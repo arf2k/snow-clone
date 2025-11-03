@@ -34,6 +34,11 @@
             <option value="mid">Mid</option>
             <option value="base">Base</option>
           </select>
+          <label for="source">Source:</label>
+          <select id="source">
+            <option value="nws" selected>NWS</option>
+            <option value="open-meteo">Open-Meteo</option>
+          </select>
           <button id="refresh">Fetch Forecast</button>
           <span id="status" class="muted"></span>
         </div>
@@ -41,15 +46,13 @@
 
       <div class="row" style="margin-top:16px">
         <section class="card">
-          <h2>NWS Forecast</h2>
+          <h2>Forecast Data</h2>
 
-          <!-- Tabs -->
           <div class="tabs">
             <button id="tabForecast" class="tab active" type="button">Forecast</button>
             <button id="tabHourly" class="tab" type="button">Hourly</button>
           </div>
 
-          <!-- Pane: Forecast (existing content) -->
           <div id="paneForecast">
             <div class="kpis">
               <div class="kpi"><span class="muted">Temp</span><b id="kpiTemp">--</b></div>
@@ -57,14 +60,13 @@
               <div class="kpi"><span class="muted">Precip Prob</span><b id="kpiPoP">--</b></div>
             </div>
 
-            <!-- new totals row (already supported by your JS) -->
             <div class="kpis" style="margin-top:10px">
               <div class="kpi"><span class="muted">Snow 24h</span><b id="kpiSnow24">--</b></div>
               <div class="kpi"><span class="muted">Snow 72h</span><b id="kpiSnow72">--</b></div>
               <div class="kpi"><span class="muted">QPF 24h</span><b id="kpiQpf24">--</b></div>
             </div>
 
-            <div class="links" style="margin-top:10px">
+            <div class="links" style="margin-top:10px" id="nwsLinks">
               <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
               <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
             </div>
@@ -73,9 +75,8 @@
             <div id="error" class="err"></div>
           </div>
 
-          <!-- Pane: Hourly (new; we wire this next) -->
           <div id="paneHourly" hidden>
-            <div class="links" style="margin-bottom:8px">
+            <div class="links" style="margin-bottom:8px" id="hourlyLinks">
               <a id="linkHourly" target="_blank" rel="noopener">Hourly JSON ▸</a>
             </div>
             <table class="hourly" aria-label="Hourly forecast">
@@ -90,8 +91,7 @@
                 </tr>
               </thead>
               <tbody id="hourlyBody">
-                <!-- rows injected -->
-              </tbody>
+                </tbody>
             </table>
           </div>
         </section>
