@@ -221,6 +221,43 @@ async function runOpenMeteo(elev) {
 }
 
 /* ------------------- Main Router ------------------- */
+async function fetchWeather(source, elev) {
+  if (source === 'open-meteo') {
+    await runOpenMeteo(elev);
+    return;
+  }
+
+  await runNws(elev); // Default to NWS
+}
+
+function updateMapAndRealityLinks(resort, elev) {
+  // This call is STILL NEEDED here, to update the map when the *resort* changes.
+  setWindyFrame(els.windyFrame, els.openWindy, {
+    lat: elev.lat,
+    lon: elev.lon,
+    overlay: els.overlaySel.value || DEFAULT_OVERLAY,
+    zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
+  });
+
+  renderRealityLinks(resort);
+}
+
+async function updateSnotelCard(resort) {
+  if (!resort.links?.snotel) {
+    renderSnotel(null);
+    return;
+  }
+
+  try {
+    setStatus('Fetching SNOTEL…');
+    const snotelData = await fetchSnotelData(resort.links.snotel);
+    renderSnotel(snotelData);
+  } catch (e) {
+    console.warn('SNOTEL fetch failed:', e);
+    renderSnotel(null); // Hide card on error
+  }
+}
+
 async function run() {
   setError('');
 
@@ -243,36 +280,9 @@ async function run() {
   }
 
   try {
-    // --- Main Router Logic ---
-    if (source === 'open-meteo') {
-      await runOpenMeteo(elev);
-    } else {
-      await runNws(elev); // Default to NWS
-    }
-
-    // --- Shared Logic (Windy, Reality Links) ---
-    // This call is STILL NEEDED here, to update the map when the *resort* changes.
-    setWindyFrame(els.windyFrame, els.openWindy, {
-      lat: elev.lat,
-      lon: elev.lon,
-      overlay: els.overlaySel.value || DEFAULT_OVERLAY,
-      zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
-    });
-
-    renderRealityLinks(r);
-try {
-      if (r.links?.snotel) {
-        setStatus('Fetching SNOTEL…');
-        const snotelData = await fetchSnotelData(r.links.snotel);
-        renderSnotel(snotelData);
-      } else {
-        renderSnotel(null); // Hide the card if no station for this resort
-      }
-    } catch (e) {
-      console.warn('SNOTEL fetch failed:', e);
-      renderSnotel(null); // Hide card on error
-    }
-
+    await fetchWeather(source, elev);
+    updateMapAndRealityLinks(r, elev);
+    await updateSnotelCard(r);
     setStatus('OK (live)');
   } catch (e) {
     console.error(e);
