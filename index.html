@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1220" />
     <title>Snow-Chase • NWS + Windy</title>
+    <link rel="manifest" href="/public/manifest.webmanifest" />
+    <link rel="icon" sizes="192x192" href="/public/icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="icon" sizes="512x512" href="/public/icons/icon-512.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles/main.css" />
     <style>
       /* tiny tab styles kept here to avoid touching main.css yet */
@@ -128,5 +132,14 @@
       </main>
 
     <script type="module" src="src/app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/public/sw.js', { scope: '/' })
+            .catch((err) => console.error('Service worker registration failed', err));
+        });
+      }
+    </script>
   </body>
 </html>
