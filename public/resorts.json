@@ -334,7 +334,7 @@
       "official": "https://www.palisadestahoe.com/",
       "cams": ["https://www.palisadestahoe.com/mountain-information/webcams"],
       "dot": [],
-      "snotel": "784:CA:SNTL"
+      "snotel": "848:CA:SNTL"
     }
   },
   {
@@ -353,7 +353,8 @@
     "links": {
       "official": "https://www.sierraattahoe.com/",
       "cams": ["https://www.sierraattahoe.com/mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "463:CA:SNTL"
     }
   },
   {
@@ -372,7 +373,8 @@
     "links": {
       "official": "https://www.mammothmountain.com/",
       "cams": ["https://www.mammothmountain.com/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "771:CA:SNTL"
     }
   },
   {
@@ -391,7 +393,8 @@
     "links": {
       "official": "https://www.junemountain.com/",
       "cams": ["https://www.junemountain.com/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "771:CA:SNTL"
     }
   },
   {
@@ -448,7 +451,8 @@
     "links": {
       "official": "https://www.crystalmountainresort.com/",
       "cams": ["https://www.crystalmountainresort.com/the-mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "642:WA:SNTL"
     }
   },
   {
@@ -467,7 +471,8 @@
     "links": {
       "official": "https://summitatsnoqualmie.com/",
       "cams": ["https://summitatsnoqualmie.com/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "SMPW1:WA:SNTL"
     }
   },
   {
@@ -486,7 +491,8 @@
     "links": {
       "official": "https://www.mtbachelor.com/",
       "cams": ["https://www.mtbachelor.com/conditions-report/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "719:OR:SNTL"
     }
   },
   {
@@ -505,7 +511,8 @@
     "links": {
       "official": "https://www.schweitzer.com/",
       "cams": ["https://www.schweitzer.com/our-mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "738:ID:SNTL"
     }
   },
   {
@@ -524,7 +531,8 @@
     "links": {
       "official": "https://www.sunvalley.com/",
       "cams": ["https://www.sunvalley.com/mountain/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "490:ID:SNTL"
     }
   },
   {
@@ -543,7 +551,8 @@
     "links": {
       "official": "https://alyeskaresort.com/",
       "cams": ["https://alyeskaresort.com/mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "1103:AK:SNTL"
     }
   },
   {
@@ -562,7 +571,8 @@
     "links": {
       "official": "https://www.aspensnowmass.com/",
       "cams": ["https://www.aspensnowmass.com/cams"],
-      "dot": []
+      "dot": [],
+      "snotel": "542:CO:SNTL"
     }
   },
   {
@@ -582,7 +592,7 @@
       "official": "https://www.steamboat.com/",
       "cams": ["https://www.steamboat.com/the-mountain/live-cams"],
       "dot": [],
-      "snotel": "813:CO:SNTL"
+      "snotel": "825:CO:SNTL"
     }
   },
   {
@@ -601,7 +611,8 @@
     "links": {
       "official": "https://www.winterparkresort.com/",
       "cams": ["https://www.winterparkresort.com/the-mountain/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "335:CO:SNTL"
     }
   },
   {
@@ -622,7 +633,8 @@
       "cams": [
         "https://www.coppercolorado.com/the-mountain/mountain-conditions/webcams"
       ],
-      "dot": []
+      "dot": [],
+      "snotel": "415:CO:SNTL"
     }
   },
   {
@@ -641,7 +653,8 @@
     "links": {
       "official": "https://www.arapahoebasin.com/",
       "cams": ["https://www.arapahoebasin.com/mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "602:CO:SNTL"
     }
   },
   {
@@ -660,7 +673,8 @@
     "links": {
       "official": "https://www.eldora.com/",
       "cams": ["https://www.eldora.com/the-mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "564:CO:SNTL"
     }
   },
   {
@@ -679,7 +693,8 @@
     "links": {
       "official": "https://www.jacksonhole.com/",
       "cams": ["https://www.jacksonhole.com/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "689:WY:SNTL"
     }
   },
   {
@@ -698,7 +713,8 @@
     "links": {
       "official": "https://bigskyresort.com/",
       "cams": ["https://bigskyresort.com/mountain/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "590:MT:SNTL"
     }
   },
   {
@@ -717,7 +733,8 @@
     "links": {
       "official": "https://www.skitaos.com/",
       "cams": ["https://www.skitaos.com/mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "1168:NM:SNTL"
     }
   },
   {
@@ -736,7 +753,8 @@
     "links": {
       "official": "https://www.deervalley.com/",
       "cams": ["https://www.deervalley.com/mountain-conditions/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "814:UT:SNTL"
     }
   },
   {
@@ -755,7 +773,8 @@
     "links": {
       "official": "https://www.solitudemountain.com/",
       "cams": ["https://www.solitudemountain.com/mountain/webcams"],
-      "dot": []
+      "dot": [],
+      "snotel": "366:UT:SNTL"
     }
   },
   {
@@ -774,7 +793,9 @@
     "links": {
       "official": "https://brightonresort.com/",
       "cams": ["https://brightonresort.com/conditions#cams"],
-      "dot": []
+      "dot": [],
+      "snotel": "366:UT:SNTL"
+
     }
   },
   {
@@ -793,7 +814,8 @@
     "links": {
       "official": "https://www.snowbird.com/",
       "cams": ["https://www.snowbird.com/mountain-cams/"],
-      "dot": ["https://udottraffic.utah.gov/"]
+      "dot": ["https://udottraffic.utah.gov/"],
+      "snotel": "SBDU1:UT:SNTL"
     }
   },
   {
@@ -812,7 +834,8 @@
     "links": {
       "official": "https://www.snowbasin.com/",
       "cams": ["https://www.snowbasin.com/mountain/webcams/"],
-      "dot": []
+      "dot": [],
+      "snotel": "332:UT:SNTL"
     }
   }
 ]
