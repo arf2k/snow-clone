@@ -15,7 +15,7 @@ function getSnotelDate(date) {
  */
 function parseElement(data, element, dayIndex) {
   try {
-    const series = data.find(s => s.stationElement.elementCode === element);
+    const series = data.find((s) => s.stationElement.elementCode === element);
     if (!series) return null;
 
     const values = series.values;
@@ -24,8 +24,8 @@ function parseElement(data, element, dayIndex) {
     // Data is returned in chronological order, so 0 is yesterday, 1 is today.
     // We want the last item for "today", so we check the end of the array.
     const val = values[dayIndex]?.value;
-    
-    return (val != null && val > -1000) ? val : null;
+
+    return val != null && val > -1000 ? val : null;
   } catch (e) {
     console.warn(`Failed to parse SNOTEL element ${element}`, e);
     return null;
@@ -37,23 +37,25 @@ function parseElement(data, element, dayIndex) {
  */
 export async function fetchSnotelData(stationTriplet) {
   const elements = 'SNWD,WTEQ,TAVG'; // Snow Depth, Water Equivalent, Avg Temp
-  
+
   // --- THE FIX: Set beginDate and endDate for the last 2 days ---
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const beginDate = getSnotelDate(yesterday);
   const endDate = getSnotelDate(today);
 
-  const u = new URL('https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data');
-  
+  const u = new URL(
+    'https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data'
+  );
+
   u.searchParams.set('stationTriplets', stationTriplet);
   u.searchParams.set('elements', elements);
   u.searchParams.set('timeseries', 'daily');
   u.searchParams.set('format', 'json');
   u.searchParams.set('units', 'english');
-  
+
   // --- USE beginDate and endDate INSTEAD OF duration ---
   u.searchParams.set('beginDate', beginDate);
   u.searchParams.set('endDate', endDate);
@@ -65,7 +67,7 @@ export async function fetchSnotelData(stationTriplet) {
     console.error('SNOTEL API Error Body:', errBody);
     throw new Error(`SNOTEL fetch failed (${r.status}): ${errBody}`);
   }
-  
+
   const data = await r.json();
 
   if (!Array.isArray(data) || data.length === 0 || !data[0].data) {
@@ -88,9 +90,10 @@ export async function fetchSnotelData(stationTriplet) {
   };
 
   // Calculate 24h change
-  const change24h = (todayVal.depth != null && yesterdayVal.depth != null)
-    ? todayVal.depth - yesterdayVal.depth
-    : null;
+  const change24h =
+    todayVal.depth != null && yesterdayVal.depth != null
+      ? todayVal.depth - yesterdayVal.depth
+      : null;
 
   return {
     name: stationName,

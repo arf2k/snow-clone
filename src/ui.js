@@ -55,9 +55,16 @@ export const els = {
 };
 
 // ---- small helpers ----
-export function setStatus(msg) { els.status.textContent = msg || ''; }
-export function setError(msg)  { els.err.textContent = msg || ''; }
-export function clearForecast(){ els.periods.innerHTML = ''; setError(''); }
+export function setStatus(msg) {
+  els.status.textContent = msg || '';
+}
+export function setError(msg) {
+  els.err.textContent = msg || '';
+}
+export function clearForecast() {
+  els.periods.innerHTML = '';
+  setError('');
+}
 
 // ---- Toggles for NWS-specific UI ----
 export function showNwsLinks(visible) {
@@ -91,18 +98,22 @@ export function renderResortOptions(resorts) {
     return;
   }
   els.spot.innerHTML = resorts
-    .map(r => `<option value="${r.id}">${r.name}</option>`)
+    .map((r) => `<option value="${r.id}">${r.name}</option>`)
     .join('');
 }
 
 export function renderRealityLinks(r) {
   const items = [];
-  (r?.links?.cams || []).forEach(url =>
-    items.push(`<a href="${url}" target="_blank" rel="noopener">Cams</a>`));
-  (r?.links?.dot || []).forEach(url =>
-    items.push(`<a href="${url}" target="_blank" rel="noopener">Roads</a>`));
+  (r?.links?.cams || []).forEach((url) =>
+    items.push(`<a href="${url}" target="_blank" rel="noopener">Cams</a>`)
+  );
+  (r?.links?.dot || []).forEach((url) =>
+    items.push(`<a href="${url}" target="_blank" rel="noopener">Roads</a>`)
+  );
   if (r?.links?.official)
-    items.push(`<a href="${r.links.official}" target="_blank" rel="noopener">Official</a>`);
+    items.push(
+      `<a href="${r.links.official}" target="_blank" rel="noopener">Official</a>`
+    );
   els.realLinks.innerHTML = items.join(' • ');
 }
 
@@ -119,12 +130,15 @@ export function renderKPIs(firstPeriod, grid) {
 
   // PoP from grid (first value)
   const pop = grid?.properties?.probabilityOfPrecipitation?.values?.[0]?.value;
-  els.kpiPoP.textContent = (pop != null) ? `${Math.round(pop)}%` : '--';
+  els.kpiPoP.textContent = pop != null ? `${Math.round(pop)}%` : '--';
 }
 
 export function renderPeriods(forecast) {
   const periods = forecast?.properties?.periods || [];
-  els.periods.innerHTML = periods.slice(0, 8).map(p => `
+  els.periods.innerHTML = periods
+    .slice(0, 8)
+    .map(
+      (p) => `
     <div class="period">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
         <strong>${p.name}</strong>
@@ -135,25 +149,34 @@ export function renderPeriods(forecast) {
         Wind: ${p.windSpeed}${p.windGust ? ` (gust ${p.windGust})` : ''}
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 export function renderTotals({ snow24, snow72, qpf24 }) {
-  els.kpiSnow24.textContent = (snow24 != null) ? `${snow24.toFixed(1)}"` : '--';
-  els.kpiSnow72.textContent = (snow72 != null) ? `${snow72.toFixed(1)}"` : '--';
-  els.kpiQpf24.textContent  = (qpf24  != null) ? `${qpf24.toFixed(2)}"`  : '--';
+  els.kpiSnow24.textContent = snow24 != null ? `${snow24.toFixed(1)}"` : '--';
+  els.kpiSnow72.textContent = snow72 != null ? `${snow72.toFixed(1)}"` : '--';
+  els.kpiQpf24.textContent = qpf24 != null ? `${qpf24.toFixed(2)}"` : '--';
 }
 
 // ---- hourly view ----
 function fmtTime(s) {
   const d = new Date(s);
-  return isNaN(d) ? '' : d.toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
+  return isNaN(d)
+    ? ''
+    : d.toLocaleString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric',
+      });
 }
 function pct(n) {
-  return (n == null || Number.isNaN(n)) ? '--' : `${Math.round(n)}%`;
+  return n == null || Number.isNaN(n) ? '--' : `${Math.round(n)}%`;
 }
-function num(n, unit='') {
-  return (n == null || Number.isNaN(n)) ? '--' : `${n}${unit}`;
+function num(n, unit = '') {
+  return n == null || Number.isNaN(n) ? '--' : `${n}${unit}`;
 }
 
 /**
@@ -175,9 +198,10 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   for (const p of periods) {
     const t = Date.parse(p.startTime);
     if (isNaN(t) || t > maxTime) continue;
-    
+
     // NWS PoP is nested, OM is not. Handle both.
-    const popVal = p?.probabilityOfPrecipitation?.value ?? p?.probabilityOfPrecipitation;
+    const popVal =
+      p?.probabilityOfPrecipitation?.value ?? p?.probabilityOfPrecipitation;
 
     rows.push(`
       <tr>
@@ -191,7 +215,9 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
     `);
   }
 
-  els.hourlyBody.innerHTML = rows.join('') || `
+  els.hourlyBody.innerHTML =
+    rows.join('') ||
+    `
     <tr><td colspan="6" class="muted">No hourly data available.</td></tr>
   `;
 }
