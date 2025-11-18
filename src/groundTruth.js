@@ -15,6 +15,7 @@ function parseDrupalApiData(data) {
 
   return {
     name: "Resort Report",
+    source: 'drupal',
     depth: latestReport?.base_depth ?? null,
     change24h: latestReport?.computed?.['24_hour'] ?? null,
     
@@ -57,6 +58,7 @@ function parseMtnPowderData(data) {
 
   return {
     name: resort.Name || "Resort Report",
+    source: 'mtnpowder',
     depth: depth !== null ? parseFloat(depth) : null,
     change24h: change24h !== null ? parseFloat(change24h) : null,
 
