@@ -89,6 +89,7 @@ export async function fetchSnotelData(stationTriplet) {
 
   return {
     name: stationName,
+    source: 'snotel',
     depth: todayVal.depth,
     wteq: todayVal.wteq,
     temp: todayVal.temp,

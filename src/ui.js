@@ -255,33 +255,42 @@ export function renderGroundTruth(data) {
   els.groundTruthCard.hidden = false;
 
   const resortName = els.spot.options[els.spot.selectedIndex].text.split(',')[0];
-  els.snotelTitle.textContent = `Ground Truth (${resortName})`;
+  const sourceLabel = data.source ? ` • ${data.source}` : '';
+  els.snotelTitle.textContent = `Ground Truth (${resortName}${sourceLabel})`;
 
-  // --- NEW, RICHER RENDER ---
-  els.snotelData.innerHTML = `
-    <div class="kpi">
-      <span class="muted">Base Depth</span>
-      <b>${fmtNum(data.depth, '"')}</b>
-    </div>
-    <div class="kpi">
-      <span class="muted">24h Snow</span>
-      <b>${fmtNum(data.change24h, '"')}</b>
-    </div>
-    <div class="kpi">
-      <span class="muted">Season Total</span>
-      <b>${fmtNum(data.seasonTotal, '"')}</b>
-    </div>
-    <div class="kpi">
-      <span class="muted">Open Lifts</span>
-      <b>${fmtOpen(data.openLifts, data.totalLifts)}</b>
-    </div>
-    <div class="kpi">
-      <span class="muted">Open Trails</span>
-      <b>${fmtOpen(data.openTrails, data.totalTrails)}</b>
-    </div>
-    <div class="kpi">
-      <span class="muted">Avg Temp</span>
-      <b>${fmtNum(data.temp, '°F')}</b>
-    </div>
-  `;
+  const kpis = [];
+  const addKpi = (label, value, formatter = (v) => v) => {
+    if (value == null) return;
+    const formatted = formatter(value);
+    if (formatted === '--') return;
+    kpis.push(`
+      <div class="kpi">
+        <span class="muted">${label}</span>
+        <b>${formatted}</b>
+      </div>
+    `);
+  };
+
+  addKpi('Base Depth', data.depth, (v) => fmtNum(v, '"'));
+  addKpi('24h Snow', data.change24h, (v) => fmtNum(v, '"'));
+  addKpi('Season Total', data.seasonTotal, (v) => fmtNum(v, '"'));
+  addKpi(
+    'Open Lifts',
+    data.openLifts != null && data.totalLifts != null
+      ? { open: data.openLifts, total: data.totalLifts }
+      : null,
+    (v) => fmtOpen(v.open, v.total)
+  );
+  addKpi(
+    'Open Trails',
+    data.openTrails != null && data.totalTrails != null
+      ? { open: data.openTrails, total: data.totalTrails }
+      : null,
+    (v) => fmtOpen(v.open, v.total)
+  );
+  addKpi('Avg Temp', data.temp, (v) => fmtNum(v, '°F'));
+
+  els.snotelData.innerHTML =
+    kpis.join('') ||
+    '<div class="muted" style="grid-column: 1 / -1;">No ground truth metrics available.</div>';
 }
