@@ -1,5 +1,6 @@
 export async function fetchOpenMeteo({ lat, lon, elevation }) {
-  const u = new URL('https://api.open-meteo.com/v1/forecast');
+  const u = new URL('/api/open-meteo/forecast', window.location.origin);
+  
   u.searchParams.set('latitude', lat);
   u.searchParams.set('longitude', lon);
   u.searchParams.set(
@@ -16,6 +17,7 @@ export async function fetchOpenMeteo({ lat, lon, elevation }) {
   u.searchParams.set('wind_speed_unit', 'mph');
 
   if (elevation) u.searchParams.set('elevation', elevation);
+  
   const r = await fetch(u.toString());
   if (!r.ok) throw new Error(`Open-Meteo failed (${r.status})`);
   return r.json();

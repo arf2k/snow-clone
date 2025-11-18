@@ -222,21 +222,30 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   `;
 }
 
-// ---- SNOTEL ground truth ----
+// ---- Ground Truth ----
 
 /**
- * Helper to format SNOTEL numbers
+ * Helper to format numbers
  */
 function fmtNum(n, unit, decimals = 0) {
-  if (n == null) return '--';
-  return `${n.toFixed(decimals)}${unit}`;
+  // Updated to handle 0
+  if (n == null || isNaN(n)) return '--';
+  return `${Number(n).toFixed(decimals)}${unit}`;
 }
 
 /**
- * Renders the SNOTEL data card
- * @param {object|null} data - The parsed SNOTEL data from snotel.js
+ * Helper to format "Open" stats
  */
-export function renderSnotel(data) {
+function fmtOpen(open, total) {
+  if (open == null || total == null) return '--';
+  return `${open} / ${total}`;
+}
+
+/**
+ * Renders the Ground Truth data card
+ * @param {object|null} data - The parsed ground truth data
+ */
+export function renderGroundTruth(data) {
   if (!data) {
     els.groundTruthCard.hidden = true;
     els.snotelData.innerHTML = '';
@@ -244,10 +253,14 @@ export function renderSnotel(data) {
   }
 
   els.groundTruthCard.hidden = false;
-  els.snotelTitle.textContent = `Ground Truth (${data.name})`;
+
+  const resortName = els.spot.options[els.spot.selectedIndex].text.split(',')[0];
+  els.snotelTitle.textContent = `Ground Truth (${resortName})`;
+
+  // --- NEW, RICHER RENDER ---
   els.snotelData.innerHTML = `
     <div class="kpi">
-      <span class="muted">Current Depth</span>
+      <span class="muted">Base Depth</span>
       <b>${fmtNum(data.depth, '"')}</b>
     </div>
     <div class="kpi">
@@ -255,12 +268,20 @@ export function renderSnotel(data) {
       <b>${fmtNum(data.change24h, '"')}</b>
     </div>
     <div class="kpi">
-      <span class="muted">Avg Temp</span>
-      <b>${fmtNum(data.temp, '°F')}</b>
+      <span class="muted">Season Total</span>
+      <b>${fmtNum(data.seasonTotal, '"')}</b>
     </div>
     <div class="kpi">
-      <span class="muted">Snow Water Eq</span>
-      <b>${fmtNum(data.wteq, '"', 1)}</b>
+      <span class="muted">Open Lifts</span>
+      <b>${fmtOpen(data.openLifts, data.totalLifts)}</b>
+    </div>
+    <div class="kpi">
+      <span class="muted">Open Trails</span>
+      <b>${fmtOpen(data.openTrails, data.totalTrails)}</b>
+    </div>
+    <div class="kpi">
+      <span class="muted">Avg Temp</span>
+      <b>${fmtNum(data.temp, '°F')}</b>
     </div>
   `;
 }

@@ -1,5 +1,3 @@
-// src/snotel.js
-
 /**
  * Helper function to format a Date object as YYYY-MM-DD
  */
@@ -22,7 +20,6 @@ function parseElement(data, element, dayIndex) {
     if (!values || values.length === 0) return null;
 
     // Data is returned in chronological order, so 0 is yesterday, 1 is today.
-    // We want the last item for "today", so we check the end of the array.
     const val = values[dayIndex]?.value;
 
     return val != null && val > -1000 ? val : null;
@@ -38,7 +35,6 @@ function parseElement(data, element, dayIndex) {
 export async function fetchSnotelData(stationTriplet) {
   const elements = 'SNWD,WTEQ,TAVG'; // Snow Depth, Water Equivalent, Avg Temp
 
-  // --- THE FIX: Set beginDate and endDate for the last 2 days ---
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
@@ -46,9 +42,7 @@ export async function fetchSnotelData(stationTriplet) {
   const beginDate = getSnotelDate(yesterday);
   const endDate = getSnotelDate(today);
 
-  const u = new URL(
-    'https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data'
-  );
+  const u = new URL('/api/snotel/data', window.location.origin);
 
   u.searchParams.set('stationTriplets', stationTriplet);
   u.searchParams.set('elements', elements);
@@ -56,13 +50,11 @@ export async function fetchSnotelData(stationTriplet) {
   u.searchParams.set('format', 'json');
   u.searchParams.set('units', 'english');
 
-  // --- USE beginDate and endDate INSTEAD OF duration ---
   u.searchParams.set('beginDate', beginDate);
   u.searchParams.set('endDate', endDate);
 
   const r = await fetch(u.toString());
   if (!r.ok) {
-    // Try to get a more helpful error from the API response body
     const errBody = await r.text();
     console.error('SNOTEL API Error Body:', errBody);
     throw new Error(`SNOTEL fetch failed (${r.status}): ${errBody}`);

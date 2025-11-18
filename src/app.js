@@ -1,4 +1,4 @@
-// src/app.js
+import '../styles/main.css'; 
 import { RESORTS_JSON_URL, DEFAULT_OVERLAY, DEFAULT_ZOOM } from './config.js';
 import {
   els,
@@ -13,12 +13,12 @@ import {
   renderHourly,
   initTabs,
   showNwsLinks,
-  renderSnotel,
+  renderGroundTruth, 
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { setWindyFrame } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
-import { fetchSnotelData } from './snotel.js';
+import { fetchGroundTruth } from './groundTruth.js'; 
 
 let RESORTS = [];
 
@@ -49,17 +49,14 @@ function deriveTotalsFromNwsGrid(gdJson) {
     24
   );
   const qpfIn24 = inchesFromMm(qpfMm24);
-
   const hasSnow = Array.isArray(props?.snowfallAmount?.values);
   let snowIn24, snowIn72;
-
   if (hasSnow) {
     const snowMm24 = accumulateNwsTimeSeries(props.snowfallAmount.values, 24);
     const snowMm72 = accumulateNwsTimeSeries(props.snowfallAmount.values, 72);
     snowIn24 = inchesFromMm(snowMm24);
     snowIn72 = inchesFromMm(snowMm72);
   } else {
-    // Fallback: 12:1 snow-to-liquid ratio
     const qpfMm72 = accumulateNwsTimeSeries(
       props?.quantitativePrecipitation?.values,
       72
@@ -67,17 +64,13 @@ function deriveTotalsFromNwsGrid(gdJson) {
     snowIn24 = qpfIn24 * 12;
     snowIn72 = inchesFromMm(qpfMm72) * 12;
   }
-
   return { snow24: snowIn24, snow72: snowIn72, qpf24: qpfIn24 };
 }
 
 /* -------------------- Open-Meteo Adapters ------------------- */
-// Find the index of the current hour in the OM hourly data
 function getOmCurrentHourIndex(hourly) {
   const now = Date.now();
-  // Find the first time slot that is *after* the current time
   const idx = hourly.time.findIndex((t) => Date.parse(t) > now);
-  // Go back one to get the *current* hour
   return idx > 0 ? idx - 1 : 0;
 }
 
@@ -86,15 +79,11 @@ function adaptOmToKpis(omJson) {
   const temp = omJson.hourly.temperature_2m[i];
   const gust = omJson.hourly.wind_gusts_10m[i];
   const pop = omJson.hourly.precipitation_probability[i];
-
-  // 1. Create a `firstPeriod` object
   const firstPeriod = {
     temperature: Math.round(temp),
     temperatureUnit: omJson.hourly_units.temperature_2m.replace('°', ''),
     windGust: `${Math.round(gust)} ${omJson.hourly_units.wind_gusts_10m}`,
   };
-
-  // 2. Create a fake `grid` object just for the PoP
   const grid = {
     properties: {
       probabilityOfPrecipitation: {
@@ -102,7 +91,6 @@ function adaptOmToKpis(omJson) {
       },
     },
   };
-
   return { firstPeriod, grid };
 }
 
@@ -113,12 +101,10 @@ function adaptOmToTotals(omJson) {
     (omJson.daily.snowfall_sum[1] || 0) +
     (omJson.daily.snowfall_sum[2] || 0);
   const qpfMm24 = omJson.daily.precipitation_sum[0] || 0;
-
-  // Convert units (OM: cm/mm, UI: in/in)
   return {
-    snow24: snowCm24 / 2.54, // cm to in
-    snow72: snowCm72 / 2.54, // cm to in
-    qpf24: qpfMm24 / 25.4, // mm to in
+    snow24: snowCm24 / 2.54,
+    snow72: snowCm72 / 2.54,
+    qpf24: qpfMm24 / 25.4,
   };
 }
 
@@ -135,7 +121,6 @@ function adaptOmToHourly(omJson) {
     wind_speed_10m: windUnit,
     wind_gusts_10m: gustUnit,
   } = omJson.hourly_units;
-
   const periods = [];
   for (let i = 0; i < time.length; i++) {
     periods.push({
@@ -145,7 +130,7 @@ function adaptOmToHourly(omJson) {
       probabilityOfPrecipitation: precipitation_probability[i],
       windSpeed: `${Math.round(wind_speed_10m[i])} ${windUnit}`,
       windGust: `${Math.round(wind_gusts_10m[i])} ${gustUnit}`,
-      shortForecast: 'N/A', // OM does not provide text forecasts
+      shortForecast: 'N/A',
     });
   }
   return { properties: { periods } };
@@ -167,7 +152,6 @@ async function loadResorts() {
     const r = await fetch(RESORTS_JSON_URL, { cache: 'no-cache' });
     if (!r.ok) throw new Error(`resorts.json HTTP ${r.status}`);
     const json = await r.json();
-
     RESORTS = json.filter(
       (x) => x?.elevations?.summit?.lat && x?.elevations?.summit?.lon
     );
@@ -175,7 +159,6 @@ async function loadResorts() {
       throw new Error(
         'resorts.json loaded but no ready entries (check elevations).'
       );
-
     renderResortOptions(RESORTS);
     els.spot.value = RESORTS[0].id;
     setStatus('Resorts loaded ✓');
@@ -190,30 +173,20 @@ async function loadResorts() {
 }
 
 /* ------------------------- run() functions ------------------------ */
-
 async function runNws(elev) {
   setStatus('Fetching NWS…');
-  showNwsLinks(true); // Show NWS-specific links
-
+  showNwsLinks(true);
   const ep = await getNwsEndpoints(elev.lat, elev.lon);
   const [forecast, grid, hourly] = await Promise.all([
     fetchForecast(ep.forecastUrl),
     fetchGrid(ep.gridUrl),
     fetchForecast(ep.hourlyUrl),
   ]);
-
-  // Period view
   renderKPIs(forecast?.properties?.periods?.[0], grid);
-  renderPeriods(forecast); // NWS has text forecasts
-
-  // Totals
+  renderPeriods(forecast);
   const totals = deriveTotalsFromNwsGrid(grid);
   renderTotals(totals);
-
-  // Hourly view
   renderHourly(hourly, { limitHours: 36 });
-
-  // Links
   els.linkPoint.href = ep.forecastUrl;
   els.linkGrid.href = ep.gridUrl;
   els.linkHourly.href = ep.hourlyUrl;
@@ -221,25 +194,17 @@ async function runNws(elev) {
 
 async function runOpenMeteo(elev) {
   setStatus('Fetching Open-Meteo…');
-  showNwsLinks(false); // Hide NWS-specific links
-  clearForecast(); // Clear NWS text periods
-
+  showNwsLinks(false);
+  clearForecast();
   const omJson = await fetchOpenMeteo({
     lat: elev.lat,
     lon: elev.lon,
     elevation: elev.elev_m,
   });
-
-  // Period view
   const { firstPeriod, grid } = adaptOmToKpis(omJson);
   renderKPIs(firstPeriod, grid);
-  // Note: We don't call renderPeriods() as OM has no text forecasts
-
-  // Totals
   const totals = adaptOmToTotals(omJson);
   renderTotals(totals);
-
-  // Hourly view
   const hourly = adaptOmToHourly(omJson);
   renderHourly(hourly, { limitHours: 36 });
 }
@@ -250,41 +215,35 @@ async function fetchWeather(source, elev) {
     await runOpenMeteo(elev);
     return;
   }
-
-  await runNws(elev); // Default to NWS
+  await runNws(elev);
 }
 
 function updateMapAndRealityLinks(resort, elev) {
-  // This call is STILL NEEDED here, to update the map when the *resort* changes.
   setWindyFrame(els.windyFrame, els.openWindy, {
     lat: elev.lat,
     lon: elev.lon,
     overlay: els.overlaySel.value || DEFAULT_OVERLAY,
     zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
   });
-
   renderRealityLinks(resort);
 }
 
-async function updateSnotelCard(resort) {
-  if (!resort.links?.snotel) {
-    renderSnotel(null);
-    return;
-  }
 
+
+async function updateGroundTruthCard(resort) {
+  setStatus('Fetching Ground Truth…');
   try {
-    setStatus('Fetching SNOTEL…');
-    const snotelData = await fetchSnotelData(resort.links.snotel);
-    renderSnotel(snotelData);
+    // This one function now holds all our priority logic
+    const groundTruthData = await fetchGroundTruth(resort);
+    renderGroundTruth(groundTruthData); // ui.js handles null
   } catch (e) {
-    console.warn('SNOTEL fetch failed:', e);
-    renderSnotel(null); // Hide card on error
+    console.warn('Ground Truth fetch failed:', e);
+    renderGroundTruth(null); // Hide card on any error
   }
 }
 
 async function run() {
   setError('');
-
   if (els.refresh.disabled) {
     setStatus('Waiting for resorts…');
     return;
@@ -308,9 +267,23 @@ async function run() {
   }
 
   try {
-    await fetchWeather(source, elev);
+    // Run weather and ground truth in parallel for speed
+    const [weatherResult, groundTruthResult] = await Promise.allSettled([
+      fetchWeather(source, elev),
+      updateGroundTruthCard(r),
+    ]);
+    
+    // This only updates links, so it can run after
     updateMapAndRealityLinks(r, elev);
-    await updateSnotelCard(r);
+    
+    // Check if any of the main fetches failed
+    if (weatherResult.status === 'rejected') {
+      throw weatherResult.reason;
+    }
+    if (groundTruthResult.status === 'rejected') {
+      console.warn('Ground truth promise failed:', groundTruthResult.reason);
+    }
+    
     setStatus('OK (live)');
   } catch (e) {
     console.error(e);
@@ -321,8 +294,7 @@ async function run() {
 
 function updateWindyMap() {
   const { elev } = getSelected();
-  if (!elev) return; // No resort loaded yet
-
+  if (!elev) return;
   setWindyFrame(els.windyFrame, els.openWindy, {
     lat: elev.lat,
     lon: elev.lon,
@@ -334,8 +306,8 @@ function updateWindyMap() {
 
 /* ------------------------- event wiring --------------------------- */
 els.refresh.addEventListener('click', run);
-els.overlaySel.addEventListener('change', updateWindyMap); // <-- CHANGED from run
-els.zoomSel.addEventListener('change', updateWindyMap); // <-- CHANGED from run
+els.overlaySel.addEventListener('change', updateWindyMap);
+els.zoomSel.addEventListener('change', updateWindyMap);
 els.spot.addEventListener('change', run);
 els.elev.addEventListener('change', run);
 els.source.addEventListener('change', run);

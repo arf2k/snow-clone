@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0b1220" />
     <title>Snow-Chase • NWS + Windy</title>
-    <link rel="manifest" href="/public/manifest.webmanifest" />
-    <link rel="icon" sizes="192x192" href="/public/icons/icon-192.svg" type="image/svg+xml" />
-    <link rel="icon" sizes="512x512" href="/public/icons/icon-512.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles/main.css" />
+    
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" sizes="192x192" href="/icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="icon" sizes="512x512" href="/icons/icon-512.svg" type="image/svg+xml" />
+    
     <style>
       /* tiny tab styles kept here to avoid touching main.css yet */
       .tabs { display:flex; gap:8px; align-items:center; margin:10px 0 6px; }
@@ -125,21 +126,13 @@
     </main>
 
     <section class="card" style="margin-top:16px" id="groundTruthCard" hidden>
-        <h2 id="snotelTitle">Ground Truth (SNOTEL)</h2>
+        <h2 id="snotelTitle">Ground Truth</h2>
         <div id="snotelData" class="kpis">
           </div>
       </section>
       </main>
 
-    <script type="module" src="src/app.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-           .register('/sw.js')
-            .catch((err) => console.error('Service worker registration failed', err));
-        });
-      }
-    </script>
-  </body>
+    <script type="module" src="/src/app.js"></script>
+ 
+    </body>
 </html>

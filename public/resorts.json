@@ -33,7 +33,8 @@
       "cams": [
         "https://www.killington.com/the-mountain/mountain-report/webcams"
       ],
-      "dot": ["https://newengland511.org/"]
+      "dot": ["https://newengland511.org/"],
+      "directApi": "https://api.killington.com/api/v1/dor/drupal/snow-reports?sort=date&direction=desc"
     }
   },
   {
@@ -103,7 +104,8 @@
     "links": {
       "official": "https://www.stratton.com/",
       "cams": ["https://www.stratton.com/mountain/webcams"],
-      "dot": ["https://newengland511.org/"]
+      "dot": ["https://newengland511.org/"],
+      "mtnpowder_id": 1
     }
   },
   {
@@ -634,6 +636,8 @@
         "https://www.coppercolorado.com/the-mountain/mountain-conditions/webcams"
       ],
       "dot": [],
+      "directApi": "https://api.coppercolorado.com/api/v1/dor/drupal/snow-reports?sort=date&direction=desc",
+      "mtnpowder_id": 5,
       "snotel": "415:CO:SNTL"
     }
   },
