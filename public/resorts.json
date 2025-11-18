@@ -280,7 +280,8 @@
     "links": {
       "official": "https://www.skibluemt.com/",
       "cams": ["https://www.skibluemt.com/webcams"],
-      "dot": ["https://511pa.com/"]
+      "dot": ["https://511pa.com/"],
+      "mtnpowder_id": 3
     }
   },
   {
@@ -315,7 +316,8 @@
     "links": {
       "official": "https://www.snowshoemtn.com/",
       "cams": ["https://www.snowshoemtn.com/webcams"],
-      "dot": ["https://511wv.gov/"]
+      "dot": ["https://511wv.gov/"],
+       "mtnpowder_id": 2
     }
   },
 
@@ -594,7 +596,8 @@
       "official": "https://www.steamboat.com/",
       "cams": ["https://www.steamboat.com/the-mountain/live-cams"],
       "dot": [],
-      "snotel": "825:CO:SNTL"
+      "snotel": "825:CO:SNTL",
+      "mtnpowder_id": 6
     }
   },
   {
@@ -614,7 +617,8 @@
       "official": "https://www.winterparkresort.com/",
       "cams": ["https://www.winterparkresort.com/the-mountain/webcams"],
       "dot": [],
-      "snotel": "335:CO:SNTL"
+      "snotel": "335:CO:SNTL",
+      "mtnpowder_id": 5
     }
   },
   {
