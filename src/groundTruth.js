@@ -1,12 +1,3 @@
-// src/groundTruth.js
-//
-// Central place to normalize "on the ground" resort data into a simple,
-// UI-friendly shape, regardless of source:
-//  - Drupal-style resort APIs (Killington, Copper, etc.)
-//  - MtnPowder snow report API
-//  - Resort-specific multi-zone snow+weather JSON (e.g. Jackson Hole all.json)
-//  - SNOTEL station data
-
 import { fetchSnotelData } from './snotel.js';
 import { fetchMtnPowderData } from './mtnpowder.js';
 
@@ -14,8 +5,22 @@ import { fetchMtnPowderData } from './mtnpowder.js';
 function toNumberOrNull(raw) {
   if (raw == null) return null;
   const n = Number(String(raw).replace(/,/g, '').trim());
-  return Number.isFinite(n) ? n : null;
+  return Number.isNaN(n) ? null : n;
 }
+
+/** Parse a base depth range like "10-18" into a single number (avg) or null. */
+function parseBaseRange(rangeStr) {
+  if (!rangeStr || typeof rangeStr !== 'string') return null;
+  const matches = rangeStr.match(/-?\d+(\.\d+)?/g);
+  if (!matches || matches.length === 0) return null;
+  const nums = matches
+    .map((m) => Number(m))
+    .filter((n) => !Number.isNaN(n));
+  if (!nums.length) return null;
+  const sum = nums.reduce((a, b) => a + b, 0);
+  return sum / nums.length;
+}
+
 
 /** Flatten an object into [path, value] pairs, e.g. lifts.open -> "lifts.open" */
 function flattenLeafPaths(obj, prefix = '') {
@@ -156,53 +161,77 @@ function parseDrupalApiData(data, { resortName } = {}) {
     temp,
   };
 }
-
-
 /**
  * ---------------- MtnPowder snow report parser ----------------
  *
- * Expects something like:
- * [
- *   {
- *     depth: { base, middle, summit },
- *     lifts: { open, total, ... },
- *     terrain: { runs: { open, total, ... }, ... },
- *     recent: [{ date, snow }, ...],
- *     ...
- *   }
- * ]
+ * Supports:
+ *  - v3 wrapper: { Resorts: [ { Name, SnowReport, ... } ] }
+ *  - Raw SnowReport-like objects (v3 fields on the root)
+ *  - Older array/`data`/`results` shapes with depth/lifts/terrain
+ *
+ * Returns the normalized ground-truth shape used by ui.renderGroundTruth.
  */
 function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
   if (!raw) {
-    console.warn('MtnPowder API: empty response');
+    console.warn('MtnPowder API: empty response', raw);
     return null;
   }
 
-  let report = null;
   let label = resortName || 'Resort';
+  let report = null;
 
-  // --- Case 1: v3 wrapper with Resorts[] and SnowReport (what you showed for Sugarbush) ---
-  if (Array.isArray(raw.Resorts) && raw.Resorts.length > 0) {
-    let resortObj = raw.Resorts[0];
+  // --- Case 1: v3 wrapper { Resorts: [...] }
+  let resortsArr = null;
+  if (Array.isArray(raw.Resorts)) {
+    resortsArr = raw.Resorts;
+  } else if (Array.isArray(raw.resorts)) {
+    resortsArr = raw.resorts;
+  }
 
-    // Try to pick the correct resort if there are multiple
+  if (resortsArr && resortsArr.length > 0) {
+    let resortObj = resortsArr[0];
+
+    // Prefer match by resortId (Id or id)
     if (resortId != null) {
-      const byId = raw.Resorts.find(
-        (r) => String(r.Id) === String(resortId)
-      );
+      const wanted = String(resortId);
+      const byId = resortsArr.find((r) => {
+        const idCandidates = [r.Id, r.id, r.resortId];
+        return idCandidates.some(
+          (v) => v != null && String(v) === wanted
+        );
+      });
       if (byId) resortObj = byId;
     } else if (resortName) {
-      const byName = raw.Resorts.find(
-        (r) => r.Name && r.Name.toLowerCase() === resortName.toLowerCase()
-      );
+      const wantedName = resortName.toLowerCase();
+      const byName = resortsArr.find((r) => {
+        const nm = (r.Name || r.name || '').toLowerCase();
+        return nm === wantedName;
+      });
       if (byName) resortObj = byName;
     }
 
-    report = resortObj.SnowReport || resortObj;
-    label = resortName || resortObj.Name || label;
+    label = resortObj.Name || resortObj.name || label;
+
+    // Prefer nested SnowReport, fall back to whole object
+    report =
+      resortObj.SnowReport ||
+      resortObj.snowReport ||
+      resortObj.snowreport ||
+      resortObj;
   }
 
-  // --- Case 2: older / other shapes (array, results[], data[]) ---
+  // --- Case 2: raw itself looks like a v3 SnowReport ---
+  if (
+    !report &&
+    (raw.SnowBaseRangeIn ||
+      raw.SeasonTotalIn ||
+      raw.TotalLifts != null ||
+      raw.TotalOpenLifts != null)
+  ) {
+    report = raw;
+  }
+
+  // --- Case 3: older shapes with arrays / data / results ---
   if (!report) {
     const arr = Array.isArray(raw)
       ? raw
@@ -217,23 +246,48 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
       return null;
     }
 
-    report = arr[0];
+    let row = arr[0];
+
+    if (resortId != null) {
+      const wanted = String(resortId);
+      const byId = arr.find((r) => {
+        const idCandidates = [r.Id, r.id, r.resortId];
+        return idCandidates.some(
+          (v) => v != null && String(v) === wanted
+        );
+      });
+      if (byId) row = byId;
+    }
+
+    label =
+      row.Name || row.name || row.resortName || row.ResortName || label;
+    report = row;
   }
 
-  // At this point, `report` is either:
-  //  - the v3 SnowReport object (Sugarbush style), or
-  //  - an older-style snowreport row with depth/lifts/terrain fields.
+  // At this point, `report` is some MtnPowder snow report object.
+  // We support two broad layouts:
+  //  A) older style: { depth, lifts, terrain, recent }
+  //  B) v3 SnowReport: Sugarbush-style fields (BaseArea, AllMountain, etc.)
 
   let depth = null;
   let change24h = null;
+  let seasonTotal = null;
   let openLifts = null;
   let totalLifts = null;
   let openTrails = null;
   let totalTrails = null;
-  let seasonTotal = null;
+  let temp = null; // MtnPowder SnowReport doesn't carry temp here
 
-  // --- Branch A: older style with depth/lifts/terrain ---
-  if (report.depth || report.lifts || report.terrain) {
+  const hasOldLayout = report.depth || report.lifts || report.terrain;
+  const hasV3Layout =
+    report.SnowBaseRangeIn != null ||
+    report.BaseArea ||
+    report.MidMountainArea ||
+    report.SummitArea ||
+    report.AllMountain;
+
+  // --- Branch A: older layout with depth/lifts/terrain/recent ---
+  if (hasOldLayout && !hasV3Layout) {
     const depthObj = report.depth || {};
     depth =
       toNumberOrNull(depthObj.base) ??
@@ -252,40 +306,64 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
     totalLifts = toNumberOrNull(lifts.total);
     openTrails = toNumberOrNull(runs.open);
     totalTrails = toNumberOrNull(runs.total);
-    // seasonTotal stays null unless we add a field mapping here
+    // seasonTotal left null unless you add mapping here
   }
 
-  // --- Branch B: v3 SnowReport (your Sugarbush JSON) ---
-  else {
+  // --- Branch B: v3 SnowReport (Sugarbush-style) ---
+  if (hasV3Layout) {
     const preferred = String(
       report.PreferredBaseReporting || ''
     ).toLowerCase();
 
-    // Depth:
-    //  1) respect PreferredBaseReporting (summit / mid / base)
-    //  2) fall back to SnowBaseRangeIn (e.g. "12-18")
-    if (preferred === 'summit' && report.SummitArea?.BaseIn != null) {
-      depth = toNumberOrNull(report.SummitArea.BaseIn);
-    } else if (preferred === 'mid' && report.MidMountainArea?.BaseIn != null) {
-      depth = toNumberOrNull(report.MidMountainArea.BaseIn);
-    } else if (report.BaseArea?.BaseIn != null) {
-      depth = toNumberOrNull(report.BaseArea.BaseIn);
-    } else if (report.SnowBaseRangeIn != null) {
-      const match = String(report.SnowBaseRangeIn).match(/[\d.]+/);
-      if (match) depth = toNumberOrNull(match[0]);
-    }
+    const baseArea = report.BaseArea || {};
+    const midArea = report.MidMountainArea || {};
+    const summitArea = report.SummitArea || {};
+    const allMountain = report.AllMountain || {};
 
-    // 24h new snow (AllMountain first, then summit/mid/base)
+    const pickDepthFromAreas = () => {
+      if (preferred === 'base') {
+        return toNumberOrNull(baseArea.BaseIn);
+      }
+      if (
+        preferred === 'mid' ||
+        preferred === 'mid-mountain' ||
+        preferred === 'midmountain'
+      ) {
+        return toNumberOrNull(midArea.BaseIn);
+      }
+      if (preferred === 'summit') {
+        return toNumberOrNull(summitArea.BaseIn);
+      }
+
+      // Fallback order: summit → mid → base → SnowBaseRangeIn (avg)
+      return (
+        toNumberOrNull(summitArea.BaseIn) ??
+        toNumberOrNull(midArea.BaseIn) ??
+        toNumberOrNull(baseArea.BaseIn) ??
+        parseBaseRange(report.SnowBaseRangeIn)
+      );
+    };
+
+    depth = pickDepthFromAreas();
+
+    // 24h snow: AllMountain first, then areas
     change24h =
-      toNumberOrNull(report.AllMountain?.Last24HoursIn) ??
-      toNumberOrNull(report.SummitArea?.Last24HoursIn) ??
-      toNumberOrNull(report.MidMountainArea?.Last24HoursIn) ??
-      toNumberOrNull(report.BaseArea?.Last24HoursIn);
+      toNumberOrNull(allMountain.Last24HoursIn) ??
+      toNumberOrNull(baseArea.Last24HoursIn) ??
+      toNumberOrNull(midArea.Last24HoursIn) ??
+      toNumberOrNull(summitArea.Last24HoursIn);
 
-    // Season total
-    seasonTotal = toNumberOrNull(report.SeasonTotalIn);
+    // Season total: explicit fields, fall back to summit seasonTotalSnow if present
+    seasonTotal =
+      toNumberOrNull(report.SeasonTotalIn) ??
+      toNumberOrNull(report.SecondarySeasonTotalIn) ??
+      toNumberOrNull(
+        report.SummitArea &&
+          report.SummitArea.seasonTotalSnow &&
+          report.SummitArea.seasonTotalSnow.value
+      );
 
-    // Lifts & trails
+    // Lifts / trails
     openLifts = toNumberOrNull(report.TotalOpenLifts);
     totalLifts = toNumberOrNull(report.TotalLifts);
     openTrails = toNumberOrNull(report.TotalOpenTrails);
@@ -302,7 +380,7 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
     totalLifts,
     openTrails,
     totalTrails,
-    temp: null, // this API doesn't give us an easy "avg temp" field
+    temp,
   };
 }
 
