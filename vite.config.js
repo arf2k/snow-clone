@@ -16,8 +16,11 @@ export default defineConfig({
       '/api/copper': {
         target: 'https://api.coppercolorado.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/copper/, '/api/v1/dor/drupal'),
+        rewrite: (path) =>
+          path.replace(/^\/api\/copper/, '/api/v1/dor/drupal'),
       },
+
+      // --- Proxy for Jackson Hole ---
       '/api/jacksonhole': {
         target: 'https://jacksonhole-prod.zaneray.com',
         changeOrigin: true,
@@ -28,7 +31,8 @@ export default defineConfig({
       '/api/mtnpowder': {
         target: 'https://mtnpowder.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/mtnpowder/, '/feed/v3.json'),
+        rewrite: (path) =>
+          path.replace(/^\/api\/mtnpowder/, '/feed/v3.json'),
       },
 
       // --- Proxy for NWS ---
@@ -50,7 +54,18 @@ export default defineConfig({
       '/api/open-meteo': {
         target: 'https://api.open-meteo.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/open-meteo/, '/v1'),
+        rewrite: (path) =>
+          path.replace(/^\/api\/open-meteo/, '/v1'),
+      },
+
+      // --- Proxy for Sugarloaf ReportPal ---
+      // Turns /api/sugarloaf?resortName=sl&useReportPal=true
+      // into https://www.sugarloaf.com/api/reportpal?resortName=sl&useReportPal=true
+      '/api/sugarloaf': {
+        target: 'https://www.sugarloaf.com',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(/^\/api\/sugarloaf/, '/api/reportpal'),
       },
     },
   },

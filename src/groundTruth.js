@@ -13,14 +13,11 @@ function parseBaseRange(rangeStr) {
   if (!rangeStr || typeof rangeStr !== 'string') return null;
   const matches = rangeStr.match(/-?\d+(\.\d+)?/g);
   if (!matches || matches.length === 0) return null;
-  const nums = matches
-    .map((m) => Number(m))
-    .filter((n) => !Number.isNaN(n));
+  const nums = matches.map((m) => Number(m)).filter((n) => !Number.isNaN(n));
   if (!nums.length) return null;
   const sum = nums.reduce((a, b) => a + b, 0);
   return sum / nums.length;
 }
-
 
 /** Flatten an object into [path, value] pairs, e.g. lifts.open -> "lifts.open" */
 function flattenLeafPaths(obj, prefix = '') {
@@ -58,8 +55,7 @@ function parseDrupalApiData(data, { resortName } = {}) {
 
   // Base depth in inches
   const depth =
-    toNumberOrNull(latest.base_depth) ??
-    toNumberOrNull(latest.baseDepth);
+    toNumberOrNull(latest.base_depth) ?? toNumberOrNull(latest.baseDepth);
 
   // 24h new snow:
   // - Prefer computed["24_hour"]
@@ -74,8 +70,7 @@ function parseDrupalApiData(data, { resortName } = {}) {
   // - Prefer computed.total
   // - fall back to more generic names if they ever appear
   const seasonTotal =
-    toNumberOrNull(computed.total) ??
-    toNumberOrNull(computed.season_total);
+    toNumberOrNull(computed.total) ?? toNumberOrNull(computed.season_total);
 
   // This particular endpoint does NOT include lifts/trails,
   // but we keep the generic pattern-matching fallback so other
@@ -122,16 +117,14 @@ function parseDrupalApiData(data, { resortName } = {}) {
   // Lifts and trails: not present for Killington snow-reports,
   // but other Drupal APIs might have them, so we still try.
   const openLifts =
-    findByPatterns(['lift', 'open']) ??
-    findByPatterns(['lifts', 'open']);
+    findByPatterns(['lift', 'open']) ?? findByPatterns(['lifts', 'open']);
   const totalLifts =
     findByPatterns(['lift', 'total']) ??
     findByPatterns(['lifts', 'total']) ??
     findByPatterns(['lifts', 'count']);
 
   const openTrails =
-    findByPatterns(['trail', 'open']) ??
-    findByPatterns(['run', 'open']);
+    findByPatterns(['trail', 'open']) ?? findByPatterns(['run', 'open']);
   const totalTrails =
     findByPatterns(['trail', 'total']) ??
     findByPatterns(['run', 'total']) ??
@@ -139,17 +132,11 @@ function parseDrupalApiData(data, { resortName } = {}) {
     findByPatterns(['runs', 'count']);
 
   // Temperature, if it ever shows up in a Drupal payload
-  const temp =
-    findByPatterns(['temp']) ??
-    findByPatterns(['temperature']);
+  const temp = findByPatterns(['temp']) ?? findByPatterns(['temperature']);
 
   return {
     name:
-      resortName ||
-      latest.name ||
-      latest.title ||
-      latest.resort ||
-      'Resort',
+      resortName || latest.name || latest.title || latest.resort || 'Resort',
     source: 'drupal',
     depth: depthFinal,
     change24h: change24hFinal,
@@ -196,9 +183,7 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
       const wanted = String(resortId);
       const byId = resortsArr.find((r) => {
         const idCandidates = [r.Id, r.id, r.resortId];
-        return idCandidates.some(
-          (v) => v != null && String(v) === wanted
-        );
+        return idCandidates.some((v) => v != null && String(v) === wanted);
       });
       if (byId) resortObj = byId;
     } else if (resortName) {
@@ -236,10 +221,10 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
     const arr = Array.isArray(raw)
       ? raw
       : Array.isArray(raw.results)
-      ? raw.results
-      : Array.isArray(raw.data)
-      ? raw.data
-      : null;
+        ? raw.results
+        : Array.isArray(raw.data)
+          ? raw.data
+          : null;
 
     if (!arr || arr.length === 0) {
       console.warn('MtnPowder API: no rows', raw);
@@ -252,15 +237,12 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
       const wanted = String(resortId);
       const byId = arr.find((r) => {
         const idCandidates = [r.Id, r.id, r.resortId];
-        return idCandidates.some(
-          (v) => v != null && String(v) === wanted
-        );
+        return idCandidates.some((v) => v != null && String(v) === wanted);
       });
       if (byId) row = byId;
     }
 
-    label =
-      row.Name || row.name || row.resortName || row.ResortName || label;
+    label = row.Name || row.name || row.resortName || row.ResortName || label;
     report = row;
   }
 
@@ -311,9 +293,7 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
 
   // --- Branch B: v3 SnowReport (Sugarbush-style) ---
   if (hasV3Layout) {
-    const preferred = String(
-      report.PreferredBaseReporting || ''
-    ).toLowerCase();
+    const preferred = String(report.PreferredBaseReporting || '').toLowerCase();
 
     const baseArea = report.BaseArea || {};
     const midArea = report.MidMountainArea || {};
@@ -383,7 +363,72 @@ function parseMtnPowderApiData(raw, { resortName, resortId } = {}) {
     temp,
   };
 }
+/**
+ * ---------------- ReportPal parser (Sugarloaf / Brighton style) ----------------
+ *
+ * Input: https://www.sugarloaf.com/api/reportpal?resortName=sl&useReportPal=true
+ *
+ * Maps:
+ *  - depth       → base depth (baseMax → base → baseMin), inches
+ *  - change24h   → snow24Hours.inches
+ *  - seasonTotal → snowSeasonTotal.inches
+ *  - open/total lifts/trails from currentConditions.resortwide
+ */
+function parseReportPalApiData(data, { resortName }) {
+  if (!data || typeof data !== 'object') {
+    console.warn('ReportPal parser: empty/invalid data', data);
+    return null;
+  }
 
+  const resortwide =
+    data.currentConditions?.resortwide || {};
+  const locations =
+    data.currentConditions?.resortLocations?.location;
+  const primaryLoc =
+    Array.isArray(locations) && locations.length > 0
+      ? locations[0]
+      : null;
+
+  let depth = null;
+  let change24h = null;
+  let seasonTotal = null;
+
+  if (primaryLoc) {
+    const baseMax = primaryLoc.baseMax || {};
+    const base = primaryLoc.base || {};
+    const baseMin = primaryLoc.baseMin || {};
+
+    // Prefer max base, then base, then min (all inches)
+    depth =
+      toNumberOrNull(baseMax.inches) ??
+      toNumberOrNull(base.inches) ??
+      toNumberOrNull(baseMin.inches);
+
+    const snow24 = primaryLoc.snow24Hours || {};
+    const snowSeason = primaryLoc.snowSeasonTotal || {};
+
+    change24h = toNumberOrNull(snow24.inches);
+    seasonTotal = toNumberOrNull(snowSeason.inches);
+  }
+
+  const openLifts = toNumberOrNull(resortwide.numLiftsOpen);
+  const totalLifts = toNumberOrNull(resortwide.numLiftsTotal);
+  const openTrails = toNumberOrNull(resortwide.numTrailsOpen);
+  const totalTrails = toNumberOrNull(resortwide.numTrailsTotal);
+
+  return {
+    name: resortName || data.name || 'Resort',
+    source: 'reportpal',
+    depth,
+    change24h,
+    seasonTotal,
+    openLifts,
+    totalLifts,
+    openTrails,
+    totalTrails,
+    temp: null,
+  };
+}
 
 /**
  * ---------------- Generic multi-zone snow+weather parser ----------------
@@ -435,7 +480,9 @@ function parseMultiZoneSnowApi(data, options = {}) {
       newSnow24In: toNumberOrNull(node.newSnowLast24H?.value),
       newSnow48In: toNumberOrNull(node.newSnowLast48H?.value),
       newSnow7dIn: toNumberOrNull(node.newSnowLast7D?.value),
-      newSinceLiftsClosedIn: toNumberOrNull(node.newSnowSinceLiftsClosed?.value),
+      newSinceLiftsClosedIn: toNumberOrNull(
+        node.newSnowSinceLiftsClosed?.value
+      ),
       tempF: toNumberOrNull(wNode.temperature?.value),
       windMph: toNumberOrNull(wNode.wind?.value),
     };
@@ -479,11 +526,10 @@ function parseMultiZoneSnowApi(data, options = {}) {
     zones,
   };
 }
-
 /**
  * ---------------- Direct resort API fetcher ----------------
  *
- * Handles resort.links.directApi endpoints (Killington, Copper, Jackson, etc.).
+ * Handles resort.links.directApi endpoints (Killington, Copper, Jackson, Sugarloaf, etc.).
  * Uses schema hints from resort.groundTruthConfig.schema when present,
  * otherwise falls back to simple shape detection.
  */
@@ -509,11 +555,16 @@ async function fetchDirectApiData(resort) {
       'https://jacksonhole-prod.zaneray.com',
       '/api/jacksonhole'
     );
+  } else if (url.includes('www.sugarloaf.com/api/reportpal')) {
+    // Sugarloaf ReportPal goes through /api/sugarloaf to avoid CORS in dev
+    const u = new URL(url);
+    proxyUrl = '/api/sugarloaf' + u.search; // keeps ?resortName=sl&useReportPal=true
   }
 
   const r = await fetch(proxyUrl, {
     headers: { Accept: 'application/json' },
   });
+
   if (!r.ok) {
     throw new Error(`Direct API fetch failed (${r.status})`);
   }
@@ -532,6 +583,9 @@ async function fetchDirectApiData(resort) {
       ...opts,
     });
   }
+  if (schemaHint === 'reportpal') {
+    return parseReportPalApiData(data, { resortName: resort.name });
+  }
 
   // 2) Shape-based fallbacks
   if (Array.isArray(data)) {
@@ -540,8 +594,21 @@ async function fetchDirectApiData(resort) {
   if (data && data.snow && typeof data.snow === 'object') {
     return parseMultiZoneSnowApi(data, { resortName: resort.name });
   }
+  if (
+    data &&
+    data.currentConditions &&
+    data.currentConditions.resortwide
+  ) {
+    // Sugarloaf / Brighton-style ReportPal JSON
+    return parseReportPalApiData(data, { resortName: resort.name });
+  }
 
-  console.warn('Unknown directApi schema for resort', resort.id, 'data:', data);
+  console.warn(
+    'Unknown directApi schema for resort',
+    resort.id,
+    'data:',
+    data
+  );
   return null;
 }
 
@@ -560,7 +627,6 @@ async function fetchMtnPowderApiDataForResort(resort) {
     resortId: String(id),
   });
 }
-
 
 /**
  * ---------------- Primary entrypoint ----------------
