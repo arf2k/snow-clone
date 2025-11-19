@@ -9,6 +9,7 @@ export const els = {
   refresh: document.getElementById('refresh'),
   overlaySel: document.getElementById('overlay'),
   zoomSel: document.getElementById('zoom'),
+  loadWindy: document.getElementById('loadWindy'),
 
   // status + errors
   status: document.getElementById('status'),
