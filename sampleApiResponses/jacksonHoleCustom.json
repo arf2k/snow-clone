@@ -1,0 +1,698 @@
+{
+    "respTimestamp": "2025-11-19T16:29:01Z",
+    "lastModified": "2025-11-18T09:57:00.000-07:00",
+    "lastSnowFallDate": "2025-11-18",
+    "snow": {
+        "lastModified": "11/18/25, 9:57 AM",
+        "lastSnowFallDate": "November 18, 2025",
+        "psa": "",
+        "detail": "Winter is just around the corner, and snow is starting to fly.  Get fired up, because the lifts will spin on Nov. 28th to kick off our 60th anniversary season. - We can't wait to see you on the hill!",
+        "inversion": false,
+        "inversionMessage": "INVERSION ALERT! The Upper Mountain is warmer than the base. Head up high to stay warm.",
+        "midMountain": {
+            "name": "Mid-Mountain",
+            "altitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "10,000"
+            },
+            "seasonTotalSnow": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "25"
+            },
+            "newSnowLast48H": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "0"
+            },
+            "newSnowLast24H": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "0"
+            },
+            "newSnowLast7D": {},
+            "totalSnowDepth": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "0"
+            },
+            "newSnowLast72H": {},
+            "newSnowSinceLiftsClosed": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "0"
+            }
+        },
+        "tramSummit": {
+            "name": "Tram Summit",
+            "altitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "seasonTotalSnow": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "49"
+            },
+            "newSnowLast48H": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "2"
+            },
+            "newSnowLast24H": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "2"
+            },
+            "newSnowSince6am": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "0"
+            },
+            "newSnowLast7D": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "3"
+            },
+            "totalSnowDepth": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "5"
+            },
+            "newSnowLast72H": {},
+            "newSnowSinceLiftsClosed": {
+                "unit": "INCH",
+                "unitSymbol": "\"",
+                "value": "2"
+            }
+        },
+        "base": {}
+    },
+    "weather": {
+        "midMountain": {
+            "name": "Mid-Mountain (Current Temp)",
+            "temperature": {
+                "unit": "FAHRENHEIT",
+                "unitSymbol": "°",
+                "value": "31"
+            },
+            "wind": {
+                "unit": "MPH",
+                "unitSymbol": "mph",
+                "value": "1"
+            }
+        },
+        "topofBridger": {
+            "name": "Top of Bridger (Current)",
+            "temperature": {
+                "unit": "FAHRENHEIT",
+                "unitSymbol": "°",
+                "value": "31"
+            },
+            "wind": {
+                "unit": "MPH",
+                "unitSymbol": "mph",
+                "value": "4"
+            }
+        },
+        "tramSummit": {
+            "name": "Tram Summit (Current)",
+            "temperature": {
+                "unit": "FAHRENHEIT",
+                "unitSymbol": "°",
+                "value": "24"
+            },
+            "wind": {
+                "unit": "MPH",
+                "unitSymbol": "mph",
+                "value": "5"
+            }
+        },
+        "base": {
+            "name": "Base (Current)",
+            "temperature": {
+                "unit": "FAHRENHEIT",
+                "unitSymbol": "°",
+                "value": "32"
+            },
+            "wind": {}
+        }
+    },
+    "forecast": {
+        "midMountain": {
+            "days": [
+                {
+                    "description": "Mostly Cloudy, Some Sun",
+                    "date": "2025-11-19",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "36"
+                    },
+                    "name": "Today",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "30"
+                    },
+                    "day": "Wednesday",
+                    "wind": {
+                        "unit": "MPH",
+                        "unitSymbol": "mph",
+                        "valueMin": "4",
+                        "direction": "South"
+                    },
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-20",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Tomorrow",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Thursday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Mostly Sunny, Some Clouds",
+                    "date": "2025-11-21",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Friday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Friday",
+                    "wind": {},
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-22",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "34"
+                    },
+                    "name": "Saturday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Saturday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-23",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Sunday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "25"
+                    },
+                    "day": "Sunday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-24",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Monday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "27"
+                    },
+                    "day": "Monday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                }
+            ]
+        },
+        "inversionSummit": {
+            "days": []
+        },
+        "jacksonHoleRDVBowlOpenSnow": {
+            "days": []
+        },
+        "summitTopofTram": {},
+        "tramSummit": {
+            "days": [
+                {
+                    "description": "Mostly Cloudy, Some Sun",
+                    "date": "2025-11-19",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "36"
+                    },
+                    "name": "Today",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "30"
+                    },
+                    "day": "Wednesday",
+                    "wind": {
+                        "unit": "MPH",
+                        "unitSymbol": "mph",
+                        "valueMin": "4",
+                        "direction": "South"
+                    },
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-20",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Tomorrow",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Thursday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Mostly Sunny, Some Clouds",
+                    "date": "2025-11-21",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Friday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Friday",
+                    "wind": {},
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-22",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "34"
+                    },
+                    "name": "Saturday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Saturday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-23",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Sunday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "25"
+                    },
+                    "day": "Sunday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-24",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "37"
+                    },
+                    "name": "Monday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "27"
+                    },
+                    "day": "Monday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                }
+            ]
+        },
+        "inversionBase": {
+            "days": [
+                {
+                    "description": "",
+                    "date": "2025-11-19",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "44"
+                    },
+                    "name": "Today",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "31"
+                    },
+                    "day": "Wednesday",
+                    "wind": {},
+                    "icon": ""
+                }
+            ]
+        },
+        "jacksonHoleSummitOpenSnow": {
+            "days": []
+        },
+        "jacksonHoleMidMtnOpenSnow": {
+            "days": []
+        },
+        "jacksonHoleBaseOpenSnow": {
+            "days": []
+        },
+        "base": {
+            "days": [
+                {
+                    "description": "Mostly Cloudy, Some Sun",
+                    "date": "2025-11-19",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "43"
+                    },
+                    "name": "Today",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "28"
+                    },
+                    "day": "Wednesday",
+                    "wind": {
+                        "unit": "MPH",
+                        "unitSymbol": "mph",
+                        "valueMin": "4",
+                        "direction": "South"
+                    },
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-20",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "46"
+                    },
+                    "name": "Tomorrow",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "27"
+                    },
+                    "day": "Thursday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Mostly Sunny, Some Clouds",
+                    "date": "2025-11-21",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "46"
+                    },
+                    "name": "Friday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "23"
+                    },
+                    "day": "Friday",
+                    "wind": {},
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Mostly Cloudy, Some Sun",
+                    "date": "2025-11-22",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "45"
+                    },
+                    "name": "Saturday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "23"
+                    },
+                    "day": "Saturday",
+                    "wind": {},
+                    "icon": "icon-svg_partlycloudy"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-23",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "46"
+                    },
+                    "name": "Sunday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "19"
+                    },
+                    "day": "Sunday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                },
+                {
+                    "description": "Snow",
+                    "date": "2025-11-24",
+                    "visibility": "",
+                    "highTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "46"
+                    },
+                    "name": "Monday",
+                    "precipitationChance": {},
+                    "lowTemperature": {
+                        "unit": "FAHRENHEIT",
+                        "unitSymbol": "°",
+                        "value": "23"
+                    },
+                    "day": "Monday",
+                    "wind": {},
+                    "icon": "icon-svg_heavysnow"
+                }
+            ]
+        }
+    },
+    "liftStatus": {
+        "totalLifts": 13,
+        "openLifts": 0,
+        "expectedOpenLifts": 0
+    },
+    "trailStatus": {
+        "totalTrails": 130,
+        "openTrails": 0,
+        "groomedTrails": 45,
+        "totalParks": 4,
+        "openParks": 0
+    },
+    "lifts": {
+        "tetonQuad": {
+            "id": "6061",
+            "openingStatus": "CLOSED",
+            "liftType": "DETACHABLE_CHAIRLIFT",
+            "name": "Teton Quad",
+            "departureAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "length": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "type": "SKI_LIFT",
+            "message": "Closed for the Season",
+            "arrivalAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "speed": {
+                "unit": "FTS",
+                "unitSymbol": "ft/sec",
+                "value": "0"
+            }
+        },
+        "eaglesRestQuad": {
+            "id": "6050",
+            "openingStatus": "CLOSED",
+            "liftType": "CHAIRLIFT",
+            "name": "Eagle's Rest Quad",
+            "departureAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "length": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "type": "SKI_LIFT",
+            "message": "Closed for the Season",
+            "arrivalAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "speed": {
+                "unit": "FTS",
+                "unitSymbol": "ft/sec",
+                "value": "0"
+            }
+        },
+        "mooseCreekQuad": {
+            "id": "6053",
+            "openingStatus": "CLOSED",
+            "liftType": "CHAIRLIFT",
+            "name": "Moose Creek Quad",
+            "departureAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "length": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "type": "SKI_LIFT",
+            "message": "Closed for the Season",
+            "arrivalAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "speed": {
+                "unit": "FTS",
+                "unitSymbol": "ft/sec",
+                "value": "0"
+            }
+        },
+        "sweetwaterGondola": {
+            "id": "6054",
+            "openingStatus": "CLOSED",
+            "liftType": "GONDOLA",
+            "name": "Sweetwater Gondola",
+            "departureAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "length": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "type": "SKI_LIFT",
+            "message": "For the season",
+            "arrivalAltitude": {
+                "unit": "FOOT",
+                "unitSymbol": "ft",
+                "value": "0"
+            },
+            "speed": {
+                "unit": "FTS",
+                "unitSymbol": "ft/sec",
+                "value": "0"
+            }
+        }
+    }
+    //...more lifts and trails...///

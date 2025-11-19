@@ -1,0 +1,343 @@
+{
+    "name": "Brighton",
+    "units": "USC",
+    "updated": "2025-11-19T13:27:58Z",
+    "liftsUpdated": "2025-11-19T13:27:58Z",
+    "trailsUpdated": "2025-11-19T13:27:58Z",
+    "commentsUpdated": "2025-11-19T13:27:58Z",
+    "operations": {
+        "resortStatus": "Closed",
+        "openTime": null,
+        "closeTime": null,
+        "nightOpenTime": null,
+        "nightCloseTime": null,
+        "uphillStatus": null,
+        "summerLiftStatus": null
+    },
+    "currentConditions": {
+        "resortwide": {
+            "totalTrailArea": {
+                "acres": 0,
+                "hectares": 0
+            },
+            "totalTrailLength": {
+                "miles": 0,
+                "kilometers": 0
+            },
+            "areaOpen": {
+                "acres": 0,
+                "hectares": 0
+            },
+            "lengthOpen": {
+                "miles": 0,
+                "kilometers": 0
+            },
+            "numTrailsTotal": 76,
+            "numTrailsOpen": 0,
+            "numTrailsGroomed": 25,
+            "numTrailsSnowMaking": null,
+            "numLiftsTotal": 8,
+            "numLiftsOpen": 0,
+            "numLiftsOnHold": 0,
+            "numLiftsClosed": 8,
+            "numParksTotal": 5,
+            "numParksOpen": 0,
+            "numPipesTotal": null,
+            "numPipesOpen": null,
+            "numParkFeaturesOpen": 0,
+            "numSummerTrailsTotal": 3,
+            "numSummerTrailsOpen": 0,
+            "numSummerLiftsTotal": 2,
+            "numSummerLiftsOpen": 0
+        },
+        "resortLocations": {
+            "location": [
+                {
+                    "name": "Brighton",
+                    "elevation": null,
+                    "primarySurface": "",
+                    "secondarySurface": "",
+                    "snowOverNight": {
+                        "inches": "0",
+                        "centimeters": "0"
+                    },
+                    "snowOverNightLabel": "Snow Overnight",
+                    "snowSince5am": null,
+                    "snowSince5amLabel": "Snow Since 5am",
+                    "snow12Hours": {
+                        "inches": "0",
+                        "centimeters": "0"
+                    },
+                    "snow12HoursLabel": "Snow 12 Hrs.",
+                    "snow24Hours": {
+                        "inches": "0",
+                        "centimeters": "0"
+                    },
+                    "snow24HoursLabel": "Snow 24 Hrs.",
+                    "snow48Hours": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "snow48HoursLabel": "Snow 48 Hrs.",
+                    "snow72Hours": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "snow72HoursLabel": "Snow 72 Hrs.",
+                    "snow7Days": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "snow7DaysLabel": "Snow 7 Days",
+                    "snowSeasonTotal": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "snowSeasonTotalLabel": "Snow Season Total",
+                    "base": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "baseLabel": "Base Depth",
+                    "baseMin": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "baseMinLabel": "Base Depth",
+                    "baseMax": {
+                        "inches": "3",
+                        "centimeters": "8"
+                    },
+                    "baseMaxLabel": "Base Depth",
+                    "tracksetOpen": null,
+                    "tracksetOpenLabel": "Trackset Open",
+                    "skateGroomed": null,
+                    "skateGroomedLabel": "Skate Groomed",
+                    "snowshoeGroomed": null,
+                    "snowshoeGroomedLabel": "Snowshoe Groomed",
+                    "fatTireOpen": null,
+                    "fatTireOpenLabel": "Fat Tire Open"
+                }
+            ]
+        },
+        "roads": null
+    },
+    "comments": {
+        "comment": [
+            {
+                "name": "Comment",
+                "title": "Uphill Travel Status",
+                "background": "Primary",
+                "text": "Our uphill travel light is RED which means uphill travel is not allowed at Brighton today, restrictions apply due to heavy machinery on the mountain that can cause severe injury or even death. Thank you for your cooperation in respecting these important safety policies so we may continue uphill travel. "
+            },
+            {
+                "name": "Uphill",
+                "title": "",
+                "background": "",
+                "text": ""
+            },
+            {
+                "name": "Weather",
+                "title": "Overcast, snowing",
+                "background": "Primary",
+                "text": ""
+            },
+            {
+                "name": "Events",
+                "title": "Events",
+                "background": "Events",
+                "text": "Events"
+            },
+            {
+                "name": "Road",
+                "title": "",
+                "background": "Primary",
+                "text": "Big Cottonwood Canyon (SR-190) is open with no traction restrictions. Check conditions before you go and drive responsibly!"
+            },
+            {
+                "name": "commentAlert",
+                "title": "",
+                "background": "",
+                "text": ""
+            },
+            {
+                "name": "trailsAlert",
+                "title": "",
+                "background": "",
+                "text": ""
+            },
+            {
+                "name": "liftsAlert",
+                "title": "",
+                "background": "",
+                "text": ""
+            }
+        ]
+    },
+    "facilities": {
+        "areas": {
+            "area": [
+                {
+                    "name": "Caterpillar",
+                    "lifts": {
+                        "lift": [
+                            {
+                                "name": "Caterpillar",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "openTime": "12:00",
+                                "closeTime": null,
+                                "nightStatus": null,
+                                "type": "Magic Carpet",
+                                "capacity": 0,
+                                "liftIcon": "magic-carpet",
+                                "featureIcons": null,
+                                "skierWaitTime": null,
+                                "scenicWaitTime": null
+                            }
+                        ]
+                    },
+                    "trails": {
+                        "trail": null
+                    },
+                    "freestyleTerrain": {
+                        "parks": null,
+                        "pipes": null
+                    },
+                    "specialTerrain": {
+                        "terrain": null
+                    },
+                    "gates": null,
+                    "nonDesignatedTrails": null
+                },
+                {
+                    "name": "Crest 6",
+                    "lifts": {
+                        "lift": [
+                            {
+                                "name": "Crest 6",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "openTime": "10:00",
+                                "closeTime": "03:00",
+                                "nightStatus": null,
+                                "type": "Detachable Chairlift",
+                                "capacity": 6,
+                                "liftIcon": "chairlift-6",
+                                "featureIcons": [
+                                    "highspeed"
+                                ],
+                                "skierWaitTime": null,
+                                "scenicWaitTime": null
+                            }
+                        ]
+                    },
+                    "trails": {
+                        "trail": [
+                            {
+                                "name": "Pacific Highway",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": true,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": [
+                                    "groomed"
+                                ]
+                            },
+                            {
+                                "name": "Thunder Road",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": true,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": [
+                                    "groomed"
+                                ]
+                            },
+                            {
+                                "name": "Wintergreen",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": false,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": null
+                            },
+                            {
+                                "name": "Tantamount",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": true,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": [
+                                    "groomed"
+                                ]
+                            },
+                            {
+                                "name": "Snow Drift",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": false,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": null
+                            },
+                            {
+                                "name": "Wren Hollow",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Black",
+                                "difficultyIcon": "advanced",
+                                "groomed": false,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": null
+                            },
+                            {
+                                "name": "Lower Mary",
+                                "status": "Closed",
+                                "statusIcon": "closed",
+                                "comment": null,
+                                "difficulty": "Blue",
+                                "difficultyIcon": "intermediate",
+                                "groomed": false,
+                                "nightStatus": null,
+                                "snowMaking": null,
+                                "uphill": null,
+                                "type": null,
+                                "featureIcons": null
+                            }
+                            //...more trails...//
