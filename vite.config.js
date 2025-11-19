@@ -20,7 +20,23 @@ export default defineConfig({
           path.replace(/^\/api\/copper/, '/api/v1/dor/drupal'),
       },
 
-      // --- Proxy for Snowbird (NEW) ---
+      // --- Proxy for Mt Bachelor ---
+      '/api/mtbachelor': {
+        target: 'https://api.mtbachelor.com',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(/^\/api\/mtbachelor/, '/api/v1/dor/drupal'),
+      },
+
+      // --- Proxy for Eldora---
+      '/api/eldora': {
+        target: 'https://api.eldora.com',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(/^\/api\/eldora/, '/api/v1/dor/drupal'),
+      },
+
+      // --- Proxy for Snowbird  ---
       '/api/snowbird': {
         target: 'https://api.snowbird.com',
         changeOrigin: true,
@@ -78,7 +94,28 @@ export default defineConfig({
       '/api/brighton': {
         target: 'https://www.brightonresort.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/brighton/, ''), 
+        rewrite: (path) => path.replace(/^\/api\/brighton/, ''),
+      },
+
+      // --- Proxy for Sunday River (ReportPal) ---
+      '/api/sundayriver': {
+        target: 'https://www.sundayriver.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/sundayriver/, ''),
+      },
+
+      // --- Proxy for Loon Mountain (ReportPal) ---
+      '/api/loon': {
+        target: 'https://www.loonmtn.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/loon/, ''),
+      },
+
+      // --- Proxy for Big Sky (ReportPal) ---
+      '/api/bigsky': {
+        target: 'https://bigskyresort.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/bigsky/, ''),
       },
     },
   },

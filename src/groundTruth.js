@@ -12,6 +12,11 @@ const PROXY_MAP = {
   'www.sugarloaf.com':            '/api/sugarloaf',       
   'api.snowbird.com':             '/api/snowbird',
   'brightonresort.com':           '/api/brighton', 
+  'loonmtn.com':               '/api/loon',
+  'sundayriver.com':           '/api/sundayriver',
+  'bigskyresort.com':          '/api/bigsky',
+  'api.mtbachelor.com':          '/api/mtbachelor',
+  'api.eldora.com':              '/api/eldora'
 };
 
 /**
