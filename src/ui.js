@@ -48,7 +48,7 @@ export const els = {
   windyFrame: document.getElementById('windy'),
   openWindy: document.getElementById('openWindy'),
 
-  // SNOTEL elements
+  // SNOTEL / Ground Truth elements
   groundTruthCard: document.getElementById('groundTruthCard'),
   snotelTitle: document.getElementById('snotelTitle'),
   snotelData: document.getElementById('snotelData'),
@@ -179,16 +179,6 @@ function num(n, unit = '') {
   return n == null || Number.isNaN(n) ? '--' : `${n}${unit}`;
 }
 
-/**
- * NWS hourly JSON shape:
- * {
- * properties: {
- * periods: [
- * { startTime, temperature, temperatureUnit, probabilityOfPrecipitation: { value }, windSpeed, windGust, shortForecast }
- * ]
- * }
- * }
- */
 export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   const periods = hourlyJson?.properties?.periods || [];
   const now = Date.now();
@@ -199,7 +189,6 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
     const t = Date.parse(p.startTime);
     if (isNaN(t) || t > maxTime) continue;
 
-    // NWS PoP is nested, OM is not. Handle both.
     const popVal =
       p?.probabilityOfPrecipitation?.value ?? p?.probabilityOfPrecipitation;
 
@@ -222,28 +211,11 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   `;
 }
 
-// ---- Ground Truth ----
-
-/**
- * Helper to format numbers
- */
-function fmtNum(n, unit, decimals = 0) {
-  // Updated to handle 0
-  if (n == null || isNaN(n)) return '--';
-  return `${Number(n).toFixed(decimals)}${unit}`;
-}
-
-/**
- * Helper to format "Open" stats
- */
-function fmtOpen(open, total) {
-  if (open == null || total == null) return '--';
-  return `${open} / ${total}`;
-}
+// ---- Ground Truth Rendering (UPDATED) ----
 
 /**
  * Renders the Ground Truth data card
- * @param {object|null} data - The parsed ground truth data
+ * @param {object|null} data - The normalized ground truth data from groundTruth.js
  */
 export function renderGroundTruth(data) {
   if (!data) {
@@ -255,42 +227,66 @@ export function renderGroundTruth(data) {
   els.groundTruthCard.hidden = false;
 
   const resortName = els.spot.options[els.spot.selectedIndex].text.split(',')[0];
-  const sourceLabel = data.source ? ` • ${data.source}` : '';
-  els.snotelTitle.textContent = `Ground Truth (${resortName}${sourceLabel})`;
+  // We no longer need the detailed title since we have the source at the bottom
+  els.snotelTitle.textContent = `Conditions Report`;
 
+  // 1. Build KPIs (Grid)
   const kpis = [];
-  const addKpi = (label, value, formatter = (v) => v) => {
-    if (value == null) return;
-    const formatted = formatter(value);
-    if (formatted === '--') return;
+  const addKpi = (label, value, unit = '') => {
+    // Loose check for null/undefined/empty string, but allow 0
+    if (value == null || value === '') return;
     kpis.push(`
       <div class="kpi">
         <span class="muted">${label}</span>
-        <b>${formatted}</b>
+        <b>${value}${unit}</b>
       </div>
     `);
   };
 
-  addKpi('Base Depth', data.depth, (v) => fmtNum(v, '"'));
-  addKpi('24h Snow', data.change24h, (v) => fmtNum(v, '"'));
-  addKpi('Season Total', data.seasonTotal, (v) => fmtNum(v, '"'));
-  addKpi(
-    'Open Lifts',
-    data.openLifts != null && data.totalLifts != null
-      ? { open: data.openLifts, total: data.totalLifts }
-      : null,
-    (v) => fmtOpen(v.open, v.total)
-  );
-  addKpi(
-    'Open Trails',
-    data.openTrails != null && data.totalTrails != null
-      ? { open: data.openTrails, total: data.totalTrails }
-      : null,
-    (v) => fmtOpen(v.open, v.total)
-  );
-  addKpi('Avg Temp', data.temp, (v) => fmtNum(v, '°F'));
+  addKpi('Base Depth', data.depth, '"');
+  addKpi('24h Snow', data.change24h, '"');
+  addKpi('Season Total', data.seasonTotal, '"');
+  
+  if (data.openLifts != null && data.totalLifts != null) {
+    addKpi('Lifts Open', `${data.openLifts}/${data.totalLifts}`);
+  }
+  if (data.openTrails != null && data.totalTrails != null) {
+    addKpi('Trails Open', `${data.openTrails}/${data.totalTrails}`);
+  }
+  if (data.temp != null) {
+    addKpi('Temp', data.temp, '°F');
+  }
 
-  els.snotelData.innerHTML =
-    kpis.join('') ||
-    '<div class="muted" style="grid-column: 1 / -1;">No ground truth metrics available.</div>';
+  // 2. Build Extended Attributes (Flex List)
+  let attrHtml = '';
+  if (data.attributes && Array.isArray(data.attributes) && data.attributes.length > 0) {
+    attrHtml += `<div class="gt-attributes">`;
+    data.attributes.forEach(attr => {
+      // attr = { label, value, type: 'info'|'success'|'warning'|'error' }
+      attrHtml += `
+        <div class="attr-row">
+          <span class="attr-label">${attr.label}:</span>
+          <span class="attr-value ${attr.type || 'info'}">${attr.value}</span>
+        </div>
+      `;
+    });
+    attrHtml += `</div>`;
+  }
+
+  // 3. Excerpt
+  let excerptHtml = '';
+  if (data.excerpt) {
+    excerptHtml = `<div class="gt-excerpt">"${data.excerpt}"</div>`;
+  }
+
+  // 4. Source
+  const sourceHtml = `<div class="gt-source">Source: ${data.source || 'Unknown'}</div>`;
+
+  // Assemble
+  els.snotelData.innerHTML = `
+    <div class="gt-grid">${kpis.join('')}</div>
+    ${attrHtml}
+    ${excerptHtml}
+    ${sourceHtml}
+  `;
 }

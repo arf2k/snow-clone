@@ -19,3 +19,63 @@ button { cursor:pointer; }
 iframe { width:100%; height:520px; border:0; border-radius:12px; }
 .links a { color:var(--accent); text-decoration:none; }
 .links a:hover { text-decoration:underline; }
+/* ---- Ground Truth Card Updates ---- */
+
+/* The Grid for Primary Stats (Depth, 24h, etc) */
+.gt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* The List for Extended Attributes (Roads, Wind, etc) */
+.gt-attributes {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.attr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.attr-label {
+  color: #666;
+}
+
+/* Dynamic Colors for Statuses */
+.attr-value { font-weight: 600; color: #333; }
+.attr-value.success { color: #27ae60; } /* Green */
+.attr-value.warning { color: #d35400; } /* Orange/Dark Yellow */
+.attr-value.error { color: #c0392b; }   /* Red */
+.attr-value.info { color: #2980b9; }    /* Blue */
+
+/* The Reporter's "Blog Post" Excerpt */
+.gt-excerpt {
+  margin-top: 12px;
+  font-style: italic;
+  color: #555;
+  font-size: 0.85rem;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 3px solid #ccc;
+  line-height: 1.4;
+}
+
+/* Footer Source Label */
+.gt-source {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 0.7rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
