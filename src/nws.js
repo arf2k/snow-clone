@@ -33,11 +33,12 @@ function buildPointsPath(lat, lon) {
   return `${NWS_BASE}/points/${latStr},${lonStr}`;
 }
 
-export async function getNwsEndpoints(lat, lon) {
+export async function getNwsEndpoints(lat, lon, { signal } = {}) {
   const pointsUrl = buildPointsPath(lat, lon);
 
   const pt = await fetch(pointsUrl, {
     headers: NWS_HEADERS,
+    signal,
   });
 
   if (!pt.ok) {
@@ -68,9 +69,10 @@ export async function getNwsEndpoints(lat, lon) {
   };
 }
 
-export async function fetchForecast(url) {
+export async function fetchForecast(url, { signal } = {}) {
   const r = await fetch(url, {
     headers: NWS_HEADERS,
+    signal,
   });
   if (!r.ok) {
     let bodyText = '';
@@ -90,9 +92,10 @@ export async function fetchForecast(url) {
   return r.json();
 }
 
-export async function fetchGrid(url) {
+export async function fetchGrid(url, { signal } = {}) {
   const r = await fetch(url, {
     headers: NWS_HEADERS,
+    signal,
   });
   if (!r.ok) {
     let bodyText = '';

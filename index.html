@@ -49,9 +49,23 @@
         </div>
       </section>
 
+      <section class="card" id="groundTruthCard" hidden>
+        <div class="card-header">
+          <h2 id="snotelTitle">Ground Truth</h2>
+          <span class="muted" id="groundSubhead">Latest resort-reported conditions</span>
+        </div>
+        <div id="snotelData" class="kpis"></div>
+      </section>
+
       <div class="row" style="margin-top:16px">
         <section class="card">
-          <h2>Forecast Data</h2>
+          <div class="card-header">
+            <h2>Forecast Data</h2>
+            <div class="links" id="nwsLinks">
+              <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
+              <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
+            </div>
+          </div>
 
           <div class="tabs">
             <button id="tabForecast" class="tab active" type="button">Forecast</button>
@@ -69,11 +83,6 @@
               <div class="kpi"><span class="muted">Snow 24h</span><b id="kpiSnow24">--</b></div>
               <div class="kpi"><span class="muted">Snow 72h</span><b id="kpiSnow72">--</b></div>
               <div class="kpi"><span class="muted">QPF 24h</span><b id="kpiQpf24">--</b></div>
-            </div>
-
-            <div class="links" style="margin-top:10px" id="nwsLinks">
-              <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
-              <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
             </div>
 
             <div id="periods" class="grid" style="margin-top:12px"></div>
@@ -102,7 +111,10 @@
         </section>
 
         <section class="card">
-          <h2>Windy Model Viewer</h2>
+          <div class="card-header">
+            <h2>Windy Model Viewer</h2>
+            <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
+          </div>
           <div class="controls">
             <label for="overlay">Overlay:</label>
             <select id="overlay">
@@ -113,9 +125,18 @@
             </select>
             <label for="zoom">Zoom:</label>
             <select id="zoom"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
+            <button id="loadWindy" type="button">Load Windy Map</button>
           </div>
-          <iframe id="windy" title="Windy" loading="lazy"></iframe>
-          <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
+          <div id="windyShell" class="windy-shell collapsed">
+            <div id="windyPlaceholder" class="windy-placeholder">
+              <div>
+                <div class="muted">Windy map is paused to save bandwidth.</div>
+                <div class="placeholder-title">Load the map when you're ready.</div>
+              </div>
+              <button class="ghost" type="button" id="loadWindyInline">Load Windy</button>
+            </div>
+            <iframe id="windy" title="Windy" loading="lazy"></iframe>
+          </div>
         </section>
       </div>
 
@@ -124,13 +145,6 @@
         <div id="realLinks" class="links"></div>
       </section>
     </main>
-
-    <section class="card" style="margin-top:16px" id="groundTruthCard" hidden>
-        <h2 id="snotelTitle">Ground Truth</h2>
-        <div id="snotelData" class="kpis">
-          </div>
-      </section>
-      </main>
 
     <script type="module" src="/src/app.js"></script>
  

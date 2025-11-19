@@ -1,4 +1,4 @@
-export async function fetchOpenMeteo({ lat, lon, elevation }) {
+export async function fetchOpenMeteo({ lat, lon, elevation }, { signal } = {}) {
   const u = new URL('/api/open-meteo/forecast', window.location.origin);
   
   u.searchParams.set('latitude', lat);
@@ -18,7 +18,7 @@ export async function fetchOpenMeteo({ lat, lon, elevation }) {
 
   if (elevation) u.searchParams.set('elevation', elevation);
   
-  const r = await fetch(u.toString());
+  const r = await fetch(u.toString(), { signal });
   if (!r.ok) throw new Error(`Open-Meteo failed (${r.status})`);
   return r.json();
 }

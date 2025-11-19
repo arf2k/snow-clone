@@ -6,10 +6,12 @@ h1 { margin:0; font-size:18px; letter-spacing:.3px; }
 .row { display:grid; grid-template-columns:1fr; gap:16px; }
 @media (min-width:980px){ .row { grid-template-columns:1.1fr .9fr; } }
 .card { background:var(--card); border:1px solid #1f2937; border-radius:14px; padding:14px; }
+.card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
 .muted { color:var(--muted); font-size:12px; }
 .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
 select, button { background:#0b1220; color:var(--ink); border:1px solid #1f2937; border-radius:10px; padding:10px 12px; font-size:14px; }
 button { cursor:pointer; }
+.button-row { display:flex; gap:8px; align-items:center; }
 .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
 .kpi { background:#0b1220; border:1px solid #1f2937; border-radius:10px; padding:10px; text-align:center; }
 .kpi b { display:block; font-size:18px; }
@@ -17,6 +19,12 @@ button { cursor:pointer; }
 @media (min-width:720px){ .grid { grid-template-columns:repeat(2,1fr); } }
 .err { color:#fca5a5; margin-top:8px; white-space:pre-wrap; }
 iframe { width:100%; height:520px; border:0; border-radius:12px; }
+.windy-shell { position:relative; min-height:140px; }
+.windy-shell.collapsed iframe { display:none; }
+.windy-shell:not(.collapsed) .windy-placeholder { display:none; }
+.windy-placeholder { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#0b1220; border:1px dashed #1f2937; border-radius:12px; padding:14px; min-height:140px; }
+.placeholder-title { font-size:15px; font-weight:600; color:var(--ink); }
+.ghost { background:transparent; border-color:#2e3a4d; color:var(--ink); }
 .links a { color:var(--accent); text-decoration:none; }
 .links a:hover { text-decoration:underline; }
 /* ---- Ground Truth Card Updates ---- */
