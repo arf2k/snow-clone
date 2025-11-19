@@ -21,14 +21,14 @@ export default defineConfig({
       },
 // --- Proxy for Mt. Bachelor ---
       '/api/mtbachelor': {
-        target: 'https://api.mtbachelor.com', // Use WWW
+        target: 'https://api.mtbachelor.com', 
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/mtbachelor/, ''), 
       },
 
       // --- Proxy for Eldora ---
       '/api/eldora': {
-        target: 'https://api.eldora.com', // Use WWW
+        target: 'https://api.eldora.com', 
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/eldora/, ''), 
       },
