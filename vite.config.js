@@ -19,21 +19,18 @@ export default defineConfig({
         rewrite: (path) =>
           path.replace(/^\/api\/copper/, '/api/v1/dor/drupal'),
       },
-
-      // --- Proxy for Mt Bachelor ---
+// --- Proxy for Mt. Bachelor ---
       '/api/mtbachelor': {
-        target: 'https://api.mtbachelor.com',
+        target: 'https://api.mtbachelor.com', // Use WWW
         changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(/^\/api\/mtbachelor/, '/api/v1/dor/drupal'),
+        rewrite: (path) => path.replace(/^\/api\/mtbachelor/, ''), 
       },
 
-      // --- Proxy for Eldora---
+      // --- Proxy for Eldora ---
       '/api/eldora': {
-        target: 'https://api.eldora.com',
+        target: 'https://api.eldora.com', // Use WWW
         changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(/^\/api\/eldora/, '/api/v1/dor/drupal'),
+        rewrite: (path) => path.replace(/^\/api\/eldora/, ''), 
       },
 
       // --- Proxy for Snowbird  ---
