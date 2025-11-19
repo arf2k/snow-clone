@@ -1,8 +1,4 @@
-export function setWindyFrame(
-  iframeEl,
-  linkEl,
-  { lat, lon, overlay = 'snow', zoom = 8 }
-) {
+export function buildWindyUrls({ lat, lon, overlay = 'snow', zoom = 8 }) {
   const params = new URLSearchParams({
     lat,
     lon,
@@ -12,6 +8,18 @@ export function setWindyFrame(
     level: 'surface',
     overlay,
   });
-  iframeEl.src = `https://embed.windy.com/embed2.html?${params.toString()}`;
-  linkEl.href = `https://www.windy.com/?${overlay},${lat},${lon},${zoom}`;
+  return {
+    src: `https://embed.windy.com/embed2.html?${params.toString()}`,
+    href: `https://www.windy.com/?${overlay},${lat},${lon},${zoom}`,
+  };
+}
+
+export function setWindyFrame(
+  iframeEl,
+  linkEl,
+  opts
+) {
+  const { src, href } = buildWindyUrls(opts);
+  iframeEl.src = src;
+  linkEl.href = href;
 }

@@ -16,11 +16,26 @@ import {
   renderGroundTruth, 
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
-import { setWindyFrame } from './windy.js';
+import { buildWindyUrls } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
 import { fetchGroundTruth } from './groundTruth.js'; 
 
 let RESORTS = [];
+const WEATHER_TIMEOUT_MS = 8000;
+let windyLoaded = false;
+let pendingWindySrc = '';
+
+function createTimeoutController(label, ms = WEATHER_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const id = setTimeout(
+    () => controller.abort(new Error(`${label} timed out after ${ms}ms`)),
+    ms
+  );
+  return {
+    signal: controller.signal,
+    cancel: () => clearTimeout(id),
+  };
+}
 
 /* ----------------------- NWS helpers ----------------------- */
 function inchesFromMm(mm) {
@@ -173,26 +188,50 @@ async function loadResorts() {
 }
 
 /* ------------------------- run() functions ------------------------ */
-async function runNws(elev) {
+async function runNws(elev, { signal } = {}) {
   setStatus('Fetching NWS…');
   showNwsLinks(true);
-  const ep = await getNwsEndpoints(elev.lat, elev.lon);
-  const [forecast, grid, hourly] = await Promise.all([
-    fetchForecast(ep.forecastUrl),
-    fetchGrid(ep.gridUrl),
-    fetchForecast(ep.hourlyUrl),
-  ]);
-  renderKPIs(forecast?.properties?.periods?.[0], grid);
-  renderPeriods(forecast);
-  const totals = deriveTotalsFromNwsGrid(grid);
-  renderTotals(totals);
-  renderHourly(hourly, { limitHours: 36 });
+  const ep = await getNwsEndpoints(elev.lat, elev.lon, { signal });
+
+  const forecastPromise = fetchForecast(ep.forecastUrl, { signal });
+  const gridPromise = fetchGrid(ep.gridUrl, { signal });
+  const hourlyPromise = fetchForecast(ep.hourlyUrl, { signal });
+
   els.linkPoint.href = ep.forecastUrl;
   els.linkGrid.href = ep.gridUrl;
   els.linkHourly.href = ep.hourlyUrl;
+
+  const errors = [];
+
+  const forecast = await forecastPromise;
+  renderKPIs(forecast?.properties?.periods?.[0]);
+  renderPeriods(forecast);
+  renderTotals({ snow24: null, snow72: null, qpf24: null });
+
+  try {
+    const grid = await gridPromise;
+    renderKPIs(forecast?.properties?.periods?.[0], grid);
+    const totals = deriveTotalsFromNwsGrid(grid);
+    renderTotals(totals);
+  } catch (e) {
+    errors.push(`grid: ${e.message}`);
+  }
+
+  try {
+    const hourly = await hourlyPromise;
+    renderHourly(hourly, { limitHours: 36 });
+  } catch (e) {
+    errors.push(`hourly: ${e.message}`);
+  }
+
+  if (errors.length) {
+    const err = new Error(errors.join('; '));
+    err.partial = true;
+    throw err;
+  }
 }
 
-async function runOpenMeteo(elev) {
+async function runOpenMeteo(elev, { signal } = {}) {
   setStatus('Fetching Open-Meteo…');
   showNwsLinks(false);
   clearForecast();
@@ -200,7 +239,7 @@ async function runOpenMeteo(elev) {
     lat: elev.lat,
     lon: elev.lon,
     elevation: elev.elev_m,
-  });
+  }, { signal });
   const { firstPeriod, grid } = adaptOmToKpis(omJson);
   renderKPIs(firstPeriod, grid);
   const totals = adaptOmToTotals(omJson);
@@ -210,22 +249,67 @@ async function runOpenMeteo(elev) {
 }
 
 /* ------------------- Main Router ------------------- */
-async function fetchWeather(source, elev) {
-  if (source === 'open-meteo') {
-    await runOpenMeteo(elev);
-    return;
+async function attemptProvider(provider, elev) {
+  const timeout = createTimeoutController(provider.toUpperCase());
+  try {
+    if (provider === 'open-meteo') {
+      await runOpenMeteo(elev, { signal: timeout.signal });
+    } else {
+      await runNws(elev, { signal: timeout.signal });
+    }
+    return { ok: true, provider };
+  } catch (e) {
+    const message = timeout.signal.aborted
+      ? `${provider} request timed out`
+      : e?.message || String(e);
+    return { ok: false, provider, error: new Error(message) };
+  } finally {
+    timeout.cancel();
   }
-  await runNws(elev);
 }
 
-function updateMapAndRealityLinks(resort, elev) {
-  setWindyFrame(els.windyFrame, els.openWindy, {
+async function fetchWeather(source, elev) {
+  const primary = source === 'open-meteo' ? 'open-meteo' : 'nws';
+  const secondary = primary === 'nws' ? 'open-meteo' : 'nws';
+
+  const primaryResult = await attemptProvider(primary, elev);
+  if (primaryResult.ok) return { provider: primary, fallbackUsed: false };
+
+  const fallbackResult = await attemptProvider(secondary, elev);
+  if (fallbackResult.ok)
+    return {
+      provider: secondary,
+      fallbackUsed: true,
+      primaryError: primaryResult.error,
+    };
+
+  const detail = [primaryResult, fallbackResult]
+    .filter((x) => !x.ok && x.error)
+    .map((x) => `${x.provider}: ${x.error.message}`)
+    .join('; ');
+  throw new Error(
+    detail ? `Weather providers failed (${detail})` : 'Weather providers failed'
+  );
+}
+
+function updateWindyTargets(elev) {
+  const opts = {
     lat: elev.lat,
     lon: elev.lon,
     overlay: els.overlaySel.value || DEFAULT_OVERLAY,
     zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
-  });
-  renderRealityLinks(resort);
+  };
+  const { src, href } = buildWindyUrls(opts);
+  pendingWindySrc = src;
+  els.openWindy.href = href;
+  if (windyLoaded) {
+    els.windyFrame.src = src;
+  }
+}
+
+function updateMapAndRealityLinks(resort, elev) {
+  updateWindyTargets(elev);
+  if (resort) renderRealityLinks(resort);
 }
 
 
@@ -283,8 +367,13 @@ async function run() {
     if (groundTruthResult.status === 'rejected') {
       console.warn('Ground truth promise failed:', groundTruthResult.reason);
     }
-    
-    setStatus('OK (live)');
+
+    const weatherOutcome = weatherResult.value;
+    const statusLabel =
+      weatherOutcome?.fallbackUsed && weatherOutcome?.provider
+        ? `OK (fallback: ${weatherOutcome.provider})`
+        : 'OK (live)';
+    setStatus(statusLabel);
   } catch (e) {
     console.error(e);
     setError(`Fetch failed: ${e.message}`);
@@ -295,12 +384,15 @@ async function run() {
 function updateWindyMap() {
   const { elev } = getSelected();
   if (!elev) return;
-  setWindyFrame(els.windyFrame, els.openWindy, {
-    lat: elev.lat,
-    lon: elev.lon,
-    overlay: els.overlaySel.value || DEFAULT_OVERLAY,
-    zoom: Number(els.zoomSel.value || DEFAULT_ZOOM),
-  });
+  updateWindyTargets(elev);
+}
+
+function loadWindyFrame() {
+  const { elev } = getSelected();
+  if (!elev) return;
+  if (!pendingWindySrc) updateWindyTargets(elev);
+  els.windyFrame.src = pendingWindySrc;
+  windyLoaded = true;
 }
 // ----------------------------------------------------------
 
@@ -308,6 +400,7 @@ function updateWindyMap() {
 els.refresh.addEventListener('click', run);
 els.overlaySel.addEventListener('change', updateWindyMap);
 els.zoomSel.addEventListener('change', updateWindyMap);
+els.loadWindy?.addEventListener('click', loadWindyFrame);
 els.spot.addEventListener('change', run);
 els.elev.addEventListener('change', run);
 els.source.addEventListener('change', run);
