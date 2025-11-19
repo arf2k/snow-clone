@@ -177,7 +177,8 @@
     "links": {
       "official": "https://www.loonmtn.com/",
       "cams": ["https://www.loonmtn.com/webcams"],
-      "dot": ["https://www.nh511.com/"]
+      "dot": ["https://www.nh511.com/"],
+      "directApi": "https://www.loonmtn.com/api/reportpal?resortName=lm&useReportPal=true"
     }
   },
   {
@@ -212,7 +213,8 @@
     "links": {
       "official": "https://www.sundayriver.com/",
       "cams": ["https://www.sundayriver.com/mountain/webcams"],
-      "dot": ["https://511maine.org/"]
+      "dot": ["https://511maine.org/"],
+      "directApi": "https://www.sundayriver.com/api/reportpal?resortName=sr&useReportPal=true"
     }
   },
   {
@@ -736,7 +738,8 @@
       "official": "https://bigskyresort.com/",
       "cams": ["https://bigskyresort.com/mountain/webcams"],
       "dot": [],
-      "snotel": "590:MT:SNTL"
+      "snotel": "590:MT:SNTL",
+      "directApi": "https://bigskyresort.com/api/reportpal?resortName=bs&useReportPal=true"
     }
   },
   {
