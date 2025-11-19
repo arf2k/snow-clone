@@ -499,7 +499,10 @@
       "official": "https://www.mtbachelor.com/",
       "cams": ["https://www.mtbachelor.com/conditions-report/webcams/"],
       "dot": [],
-      "snotel": "719:OR:SNTL"
+      "snotel": "719:OR:SNTL",
+      "directApi": "https://api.mtbachelor.com/api/v1/dor/drupal/snow-reports?sort=date&direction=desc"
+
+
     }
   },
   {
@@ -685,7 +688,8 @@
       "official": "https://www.eldora.com/",
       "cams": ["https://www.eldora.com/the-mountain/webcams/"],
       "dot": [],
-      "snotel": "564:CO:SNTL"
+      "snotel": "564:CO:SNTL",
+      "directApi": "https://api.eldora.com/api/v1/dor/drupal/snow-reports?sort=date&direction=desc"
     }
   },
   {
@@ -813,7 +817,8 @@
       "official": "https://brightonresort.com/",
       "cams": ["https://brightonresort.com/conditions#cams"],
       "dot": [],
-      "snotel": "366:UT:SNTL"
+      "snotel": "366:UT:SNTL",
+      "directApi": "https://www.brightonresort.com/api/reportpal?resortName=br&useReportPal=true"
     }
   },
   {

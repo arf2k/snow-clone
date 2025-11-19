@@ -4,14 +4,14 @@ import { fetchMtnPowderData } from './mtnpowder.js';
 /**
  * ---------------- PROXY CONFIGURATION ----------------
  * Map unique domains to their local proxy paths.
- * Match these keys to the entries in your vite.config.js.
  */
 const PROXY_MAP = {
   'api.killington.com':           '/api/killington',      
   'api.coppercolorado.com':       '/api/copper',          
   'jacksonhole-prod.zaneray.com': '/api/jacksonhole',     
   'www.sugarloaf.com':            '/api/sugarloaf',       
-  'api.snowbird.com':             '/api/snowbird', // Requires vite.config.js update
+  'api.snowbird.com':             '/api/snowbird',
+  'brightonresort.com':           '/api/brighton', 
 };
 
 /**
@@ -189,35 +189,47 @@ export async function fetchGroundTruth(resort) {
     if (resort.links.directApi) {
       const originalUrl = resort.links.directApi;
       let fetchUrl = originalUrl;
-      let matchedProxy = false;
 
-      // Check PROXY_MAP for domain matches
+      // Iterate through our Proxy Map
       for (const [domain, proxyPath] of Object.entries(PROXY_MAP)) {
+        // Check if the URL contains the domain (e.g. "brightonresort.com")
         if (originalUrl.includes(domain)) {
+          
+          // SPECIAL CASE: Drupal/Killington (Requires stripping a specific path prefix)
           if (domain.includes('killington') || domain.includes('copper') || domain.includes('snowbird')) {
-             // Drupal style: replace the long base path
+             // Replace the specific Drupal base path with the proxy
              fetchUrl = originalUrl.replace(`https://${domain}/api/v1/dor/drupal`, proxyPath);
-          } else {
-             // Standard replacement
-             fetchUrl = originalUrl.replace(`https://${domain}`, proxyPath);
+             // Handle cases where 'www' might cause a mismatch manually
+             if (fetchUrl === originalUrl) {
+                fetchUrl = originalUrl.replace(`https://www.${domain}/api/v1/dor/drupal`, proxyPath);
+             }
+          } 
+          // STANDARD CASE: Simple Domain Swap (Brighton, Jackson Hole, etc.)
+          else {
+             try {
+               // Use the URL object to cleanly swap the Origin
+               const u = new URL(originalUrl);
+               // Construct: /api/brighton + /api/reportpal?resortName=br...
+               fetchUrl = `${proxyPath}${u.pathname}${u.search}`;
+             } catch (e) {
+               // Fallback if URL parsing fails
+               console.error('URL parse failed', e);
+             }
           }
-          matchedProxy = true;
-          break; 
+          break; // Stop checking once we match
         }
       }
 
-      // Handle Sugarloaf/ReportPal params if proxy didn't preserve them automatically
-      // (Some dev environments strip query params on rewrite if not careful)
-      if (originalUrl.includes('reportpal') && !fetchUrl.includes('?')) {
-         const u = new URL(originalUrl);
-         fetchUrl += u.search; 
+      // Debug log to confirm the rewrite happened
+      if (originalUrl.includes('brighton')) {
+        console.log(`[Brighton Debug] Rewrote ${originalUrl} -> ${fetchUrl}`);
       }
 
       const r = await fetch(fetchUrl);
       if (r.ok) {
         const json = await r.json();
 
-        // Select Parser based on Schema Hint or URL detection
+        // Select Parser
         if (resort.groundTruthConfig?.schema === 'multi-zone-snow' || originalUrl.includes('jacksonhole')) {
           return parseJacksonHole(json);
         } else if (originalUrl.includes('reportpal')) {

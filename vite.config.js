@@ -20,6 +20,14 @@ export default defineConfig({
           path.replace(/^\/api\/copper/, '/api/v1/dor/drupal'),
       },
 
+      // --- Proxy for Snowbird (NEW) ---
+      '/api/snowbird': {
+        target: 'https://api.snowbird.com',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(/^\/api\/snowbird/, '/api/v1/dor/drupal'),
+      },
+
       // --- Proxy for Jackson Hole ---
       '/api/jacksonhole': {
         target: 'https://jacksonhole-prod.zaneray.com',
@@ -59,13 +67,18 @@ export default defineConfig({
       },
 
       // --- Proxy for Sugarloaf ReportPal ---
-      // Turns /api/sugarloaf?resortName=sl&useReportPal=true
-      // into https://www.sugarloaf.com/api/reportpal?resortName=sl&useReportPal=true
       '/api/sugarloaf': {
         target: 'https://www.sugarloaf.com',
         changeOrigin: true,
         rewrite: (path) =>
           path.replace(/^\/api\/sugarloaf/, '/api/reportpal'),
+      },
+
+// --- Proxy for Brighton ReportPal ---
+      '/api/brighton': {
+        target: 'https://www.brightonresort.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/brighton/, ''), 
       },
     },
   },
