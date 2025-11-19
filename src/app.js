@@ -25,15 +25,6 @@ const WEATHER_TIMEOUT_MS = 8000;
 let windyLoaded = false;
 let pendingWindySrc = '';
 
-function syncWindyButtons() {
-  const label = windyLoaded ? 'Reload Windy Map' : 'Load Windy Map';
-  [els.loadWindy, els.loadWindyInline].forEach((btn) => {
-    if (!btn) return;
-    btn.textContent = label;
-    btn.disabled = false;
-  });
-}
-
 function createTimeoutController(label, ms = WEATHER_TIMEOUT_MS) {
   const controller = new AbortController();
   const id = setTimeout(
@@ -402,8 +393,6 @@ function loadWindyFrame() {
   if (!pendingWindySrc) updateWindyTargets(elev);
   els.windyFrame.src = pendingWindySrc;
   windyLoaded = true;
-  els.windyShell?.classList.remove('collapsed');
-  syncWindyButtons();
 }
 // ----------------------------------------------------------
 
@@ -412,7 +401,6 @@ els.refresh.addEventListener('click', run);
 els.overlaySel.addEventListener('change', updateWindyMap);
 els.zoomSel.addEventListener('change', updateWindyMap);
 els.loadWindy?.addEventListener('click', loadWindyFrame);
-els.loadWindyInline?.addEventListener('click', loadWindyFrame);
 els.spot.addEventListener('change', run);
 els.elev.addEventListener('change', run);
 els.source.addEventListener('change', run);
