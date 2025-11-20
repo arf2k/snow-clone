@@ -48,14 +48,10 @@ export const els = {
   // windy
   windyFrame: document.getElementById('windy'),
   openWindy: document.getElementById('openWindy'),
-  windyShell: document.getElementById('windyShell'),
-  windyPlaceholder: document.getElementById('windyPlaceholder'),
-  loadWindyInline: document.getElementById('loadWindyInline'),
 
   // SNOTEL / Ground Truth elements
   groundTruthCard: document.getElementById('groundTruthCard'),
   snotelTitle: document.getElementById('snotelTitle'),
-  groundSubhead: document.getElementById('groundSubhead'),
   snotelData: document.getElementById('snotelData'),
 };
 
@@ -226,16 +222,12 @@ export function renderGroundTruth(data) {
   if (!data) {
     els.groundTruthCard.hidden = true;
     els.snotelData.innerHTML = '';
-    if (els.groundSubhead)
-      els.groundSubhead.textContent = 'Latest resort-reported conditions';
     return;
   }
 
   els.groundTruthCard.hidden = false;
 
   const resortName = els.spot.options[els.spot.selectedIndex].text.split(',')[0];
-  if (els.groundSubhead)
-    els.groundSubhead.textContent = `Latest conditions for ${resortName}`;
   // We no longer need the detailed title since we have the source at the bottom
   els.snotelTitle.textContent = `Conditions Report`;
 

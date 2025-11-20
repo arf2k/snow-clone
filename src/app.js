@@ -408,7 +408,6 @@ els.source.addEventListener('change', run);
 /* --------------------------- boot -------------------------------- */
 async function boot() {
   initTabs();
-  syncWindyButtons();
   await loadResorts();
   run();
 }
