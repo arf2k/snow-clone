@@ -23,12 +23,25 @@ import {
   renderRegionOptions,
   renderRanking,
   setRankingStatus,
+  setRankingCaption,
+  renderDailyChart,
+  renderCompareOptions,
+  renderCompare,
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { buildWindyUrls } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
 import { fetchGroundTruth } from './groundTruth.js';
 import { fetchRanking, currentHourIndex } from './ranking.js';
+import {
+  addDays,
+  daysBetween,
+  today,
+  weekend,
+  dayLabel,
+  tripTotals,
+  LEAD_DAYS,
+} from './outlook.js';
 
 let RESORTS = [];
 // One budget per provider attempt. NWS needs a /points lookup followed by
@@ -48,6 +61,16 @@ let rankingRows = [];
 let rankingSort = { key: 'snow72', dir: 'desc' };
 let rankingElev = null; // elevation band rankingRows was computed for
 
+// Trip view: rank by snow just before and during chosen dates
+const FORECAST_DAYS = 16; // how far the daily forecast reaches
+let tripSort = { key: 'total', dir: 'desc' };
+let trip = weekend(0); // { start, end } as 'YYYY-MM-DD'
+
+// Compare: on-mountain reports for the picked resorts, fetched on demand
+const COMPARE_TTL_MS = 10 * 60000;
+const compareReports = new Map(); // id -> { state, data, terrain, at }
+const CHART_DAYS = 7;
+
 // Everything the resort header and forecast table are built from. The
 // pieces arrive separately (report, lifts, NWS, Open-Meteo); drawSummary()
 // redraws from whatever has arrived so far.
@@ -56,6 +79,7 @@ const detail = {
   reportState: 'loading', // 'loading' | 'done'
   terrain: null, // lifts and trails, or null
   nws: null, // { snow24, snow72 } from the NWS grid
+  nwsSnow: null, // raw NWS snowfall series, for the by-day chart
   om: null, // Open-Meteo totals when it is the detail source
   qpf24: null, // NWS liquid equivalent, inches
 };
@@ -66,9 +90,48 @@ function resetDetail() {
     reportState: 'loading',
     terrain: null,
     nws: null,
+    nwsSnow: null,
     om: null,
     qpf24: null,
   });
+}
+
+// The next week, day by day, from both forecasts. Days are calendar days
+// at the resort; NWS is summed over the same local-midnight boundaries.
+function dailyChartFor(row) {
+  const days = row.daily.slice(0, CHART_DAYS);
+  const nwsValues = days.map((d) => {
+    if (!detail.nwsSnow) return null;
+    const start = Date.parse(`${d.date}T00:00:00Z`) - row.utcOffset * 1000;
+    // Today only counts from now on; the forecast has no past hours
+    const from = Math.max(start, Date.now());
+    const mm = accumulateNwsWindow(detail.nwsSnow, from, start + 24 * HOUR_MS, {
+      minCoverage: 0.9,
+    });
+    return mm == null ? null : inchesFromMm(mm);
+  });
+  const series = [];
+  if (nwsValues.some((v) => v != null)) {
+    series.push({ name: 'NWS', slot: 1, values: nwsValues });
+  }
+  series.push({
+    name: 'Open-Meteo',
+    slot: 2,
+    values: days.map((d) => d.snow),
+  });
+  return {
+    days: days.map((d, i) => ({
+      label:
+        i === 0
+          ? 'Today'
+          : new Date(`${d.date}T00:00:00Z`).toLocaleDateString([], {
+              weekday: 'short',
+              timeZone: 'UTC',
+            }),
+      sub: String(Number(d.date.slice(8))),
+    })),
+    series,
+  };
 }
 
 function drawSummary() {
@@ -84,6 +147,7 @@ function drawSummary() {
   const om = detail.om || fromRanking ? { ...fromRanking, ...detail.om } : null;
 
   renderForecastCompare({ nws: detail.nws, om, qpf24: detail.qpf24 });
+  renderDailyChart(row ? dailyChartFor(row) : null);
   renderVerdict({
     reported: detail.reported,
     reportState: detail.reportState,
@@ -115,6 +179,11 @@ function savePrefs() {
         overlay: els.overlaySel.value,
         zoom: els.zoomSel.value,
         region: els.rankRegion.value,
+        rankMode: els.rankMode.value,
+        tripStart: trip.start,
+        tripEnd: trip.end,
+        compare: els.cmp.map((sel) => sel.value),
+        compareOpen: els.compareCard.open,
       })
     );
   } catch {
@@ -136,6 +205,24 @@ function applyPrefs() {
   restore(els.overlaySel, prefs.overlay);
   restore(els.zoomSel, prefs.zoom);
   restore(els.rankRegion, prefs.region);
+  if (prefs.rankMode === 'trip') els.rankMode.value = 'trip';
+  // Saved trip dates are only kept while they are still ahead of us
+  if (prefs.tripStart >= today() && prefs.tripEnd >= prefs.tripStart) {
+    setTrip(prefs.tripStart, prefs.tripEnd, { silent: true });
+  } else {
+    setTrip(trip.start, trip.end, { silent: true });
+  }
+  // Only a real saved comparison counts; otherwise the card seeds itself
+  if (
+    Array.isArray(prefs.compare) &&
+    prefs.compare.filter(Boolean).length >= 2
+  ) {
+    prefs.compare.forEach((id, i) => {
+      if (els.cmp[i]) restore(els.cmp[i], id);
+    });
+    els.compareCard.dataset.picked = '1';
+  }
+  if (prefs.compareOpen) els.compareCard.open = true;
 }
 
 /* ----------------------- NWS helpers ----------------------- */
@@ -165,17 +252,33 @@ function parseValidTime(validTime) {
  * the one straddling the end of the window are both included fairly.
  */
 function accumulateNwsTimeSeries(values, hours, now = Date.now()) {
-  if (!Array.isArray(values)) return 0;
-  const windowEnd = now + hours * HOUR_MS;
+  return accumulateNwsWindow(values, now, now + hours * HOUR_MS) ?? 0;
+}
+
+// Same, for an arbitrary window. Returns null when the series covers less
+// than `minCoverage` of the window (e.g. the day the forecast runs out
+// part-way through, which would otherwise show as a misleadingly small total).
+function accumulateNwsWindow(
+  values,
+  windowStart,
+  windowEnd,
+  { minCoverage = 0 } = {}
+) {
+  if (!Array.isArray(values)) return null;
   let sum = 0;
+  let coveredMs = 0;
   for (const v of values) {
     if (v?.value == null) continue;
     const t = parseValidTime(v.validTime);
     if (!t || t.end <= t.start) continue;
-    const overlap = Math.min(t.end, windowEnd) - Math.max(t.start, now);
-    if (overlap > 0) sum += v.value * (overlap / (t.end - t.start));
+    const overlap = Math.min(t.end, windowEnd) - Math.max(t.start, windowStart);
+    if (overlap > 0) {
+      coveredMs += overlap;
+      sum += v.value * (overlap / (t.end - t.start));
+    }
   }
-  return sum;
+  if (coveredMs <= 0) return null;
+  return coveredMs >= minCoverage * (windowEnd - windowStart) ? sum : null;
 }
 
 // Value of an NWS grid series for the interval containing `now`
@@ -295,6 +398,7 @@ async function loadResorts() {
       );
     renderResortOptions(RESORTS);
     renderRegionOptions(RESORTS);
+    renderCompareOptions(RESORTS);
     els.spot.value = RESORTS[0].id;
     applyPrefs();
     setStatus('Resorts loaded ✓');
@@ -355,6 +459,7 @@ async function runNws(elev, { signal } = {}) {
     const totals = deriveTotalsFromNwsGrid(grid.value);
     detail.nws = { snow24: totals.snow24, snow72: totals.snow72 };
     detail.qpf24 = totals.qpf24;
+    detail.nwsSnow = grid.value?.properties?.snowfallAmount?.values || null;
     drawSummary();
   }
 
@@ -574,12 +679,54 @@ function loadWindyFrame() {
 // ----------------------------------------------------------
 
 /* --------------------------- ranking ------------------------------ */
+const OUTLOOK_COLUMNS = [
+  { key: 'snow24', label: '24h' },
+  { key: 'snow72', label: '72h' },
+  { key: 'snow7d', label: '7 days' },
+  {
+    key: 'gust24',
+    label: 'Max gust',
+    kind: 'gust',
+    title: 'Strongest forecast gust in the next 24 hours',
+  },
+];
+const TRIP_COLUMNS = [
+  {
+    key: 'before',
+    label: 'Before',
+    title: `Snow in the ${LEAD_DAYS} days before the trip`,
+  },
+  { key: 'during', label: 'Trip', title: 'Snow during the trip' },
+  { key: 'total', label: 'Total' },
+  {
+    key: 'tripGust',
+    label: 'Gust',
+    kind: 'gust',
+    title: 'Strongest forecast gust during the trip',
+  },
+];
+
+function tripLabel() {
+  return trip.start === trip.end
+    ? dayLabel(trip.start, { long: true })
+    : `${dayLabel(trip.start, { long: true })} – ${dayLabel(trip.end, { long: true })}`;
+}
+
 function drawRanking() {
+  const tripMode = els.rankMode.value === 'trip';
+  els.tripControls.hidden = !tripMode;
+
   const region = els.rankRegion.value;
-  const { key, dir } = rankingSort;
+  const sort = tripMode ? tripSort : rankingSort;
+  const { key, dir } = sort;
   const sign = dir === 'asc' ? 1 : -1;
   const rows = rankingRows
     .filter((row) => !region || row.region === region)
+    .map((row) =>
+      tripMode
+        ? { ...row, ...tripTotals(row.daily, trip.start, trip.end) }
+        : row
+    )
     .sort((a, b) => {
       if (key === 'name') return sign * a.name.localeCompare(b.name);
       // rows with no value always sink to the bottom
@@ -588,16 +735,145 @@ function drawRanking() {
       return sign * (a[key] - b[key]) || a.name.localeCompare(b.name);
     });
   renderRanking(rows, {
-    sort: rankingSort,
+    columns: tripMode ? TRIP_COLUMNS : OUTLOOK_COLUMNS,
+    sort,
     selectedId: els.spot.value,
     windHoldMph: WIND_HOLD_GUST_MPH,
   });
+
+  const where = `${els.elev.value} elevation · Open-Meteo · tap a resort for detail`;
+  if (tripMode) {
+    const nights = daysBetween(trip.start, trip.end) + 1;
+    const far = daysBetween(today(), trip.end) > 7;
+    setRankingCaption(
+      `${tripLabel()} (${nights} day${nights === 1 ? '' : 's'}). "Before" is snow in the ${LEAD_DAYS} days leading in. ` +
+        (far ? 'Past about a week this is a rough signal only. ' : '') +
+        `Forecast at ${where}.`
+    );
+  } else {
+    setRankingCaption(`Forecast snowfall at ${where}.`);
+  }
+
   drawSummary(); // the resort header uses the ranking's Open-Meteo numbers
+  drawCompare();
+}
+
+/* ----------------------------- trip -------------------------------- */
+function setTrip(start, end, { silent = false } = {}) {
+  const first = today();
+  const last = addDays(first, FORECAST_DAYS - 1);
+  const clamp = (d) => (d < first ? first : d > last ? last : d);
+  let s = clamp(start || first);
+  let e = clamp(end || s);
+  if (e < s) e = s;
+  trip = { start: s, end: e };
+
+  els.tripStart.min = first;
+  els.tripStart.max = last;
+  els.tripEnd.min = s;
+  els.tripEnd.max = last;
+  els.tripStart.value = s;
+  els.tripEnd.value = e;
+  if (silent) return;
+  savePrefs();
+  drawRanking();
+}
+
+/* ---------------------------- compare ------------------------------ */
+function compareIds() {
+  // de-duplicated, in slot order
+  return [...new Set(els.cmp.map((sel) => sel.value).filter(Boolean))];
+}
+
+// First time the card is opened: this resort plus the top two others
+function seedCompare() {
+  if (els.compareCard.dataset.picked) return;
+  const ranked = [...els.rankBody.querySelectorAll('tr[data-id]')].map(
+    (tr) => tr.dataset.id
+  );
+  if (!ranked.length) return; // ranking not loaded yet; try again next draw
+  els.compareCard.dataset.picked = '1';
+  const current = els.spot.value;
+  const others = ranked.filter((id) => id !== current).slice(0, 2);
+  [current, ...others].forEach((id, i) => {
+    if (els.cmp[i] && id) els.cmp[i].value = id;
+  });
+}
+
+async function loadCompareReport(id) {
+  const resort = RESORTS.find((r) => r.id === id);
+  if (!resort) return;
+  const entry = { state: 'loading', data: null, terrain: null, at: Date.now() };
+  compareReports.set(id, entry);
+  try {
+    entry.data = await fetchGroundTruth(resort);
+    entry.terrain = entry.data?.loadTerrain
+      ? await entry.data.loadTerrain()
+      : (entry.data?.terrain ?? null);
+  } catch (e) {
+    console.warn(`Compare: report for ${id} failed:`, e);
+  }
+  entry.state = 'done';
+  if (compareReports.get(id) === entry) drawCompare();
+}
+
+function drawCompare() {
+  if (!els.compareCard.open || !RESORTS.length) return;
+  seedCompare();
+  const ids = compareIds();
+
+  for (const id of ids) {
+    const have = compareReports.get(id);
+    if (!have || Date.now() - have.at > COMPARE_TTL_MS) loadCompareReport(id);
+  }
+
+  const rowFor = (id) =>
+    rankingElev === els.elev.value
+      ? rankingRows.find((r) => r.id === id)
+      : undefined;
+  const cols = ids.map((id) => ({
+    id,
+    name: RESORTS.find((r) => r.id === id)?.name || id,
+    row: rowFor(id),
+    report: compareReports.get(id),
+  }));
+  const withDays = cols.find((c) => c.row?.daily?.length);
+  renderCompare({
+    cols,
+    trip:
+      els.rankMode.value === 'trip'
+        ? {
+            label: tripLabel(),
+            totals: new Map(
+              cols.map((c) => [
+                c.id,
+                tripTotals(c.row?.daily, trip.start, trip.end),
+              ])
+            ),
+          }
+        : null,
+    days: withDays
+      ? withDays.row.daily.slice(0, CHART_DAYS).map((d) => d.date)
+      : [],
+    windHoldMph: WIND_HOLD_GUST_MPH,
+  });
+}
+
+function addToCompare(id) {
+  els.compareCard.dataset.picked = '1';
+  const slots = els.cmp.map((sel) => sel.value);
+  if (!slots.includes(id)) {
+    const free = slots.findIndex((v, i) => i > 0 && !v);
+    els.cmp[free === -1 ? els.cmp.length - 1 : free].value = id;
+  }
+  els.compareCard.open = true;
+  savePrefs();
+  drawCompare();
+  els.compareCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function loadRanking({ force = false } = {}) {
   const elevKey = els.elev.value;
-  els.rankElevLabel.textContent = elevKey;
 
   const cached = rankingCache.get(elevKey);
   if (!force && cached && Date.now() - cached.at < RANKING_TTL_MS) {
@@ -638,11 +914,14 @@ async function loadRanking({ force = false } = {}) {
 }
 
 function onRankingSort(key) {
-  if (rankingSort.key === key) {
-    rankingSort.dir = rankingSort.dir === 'desc' ? 'asc' : 'desc';
-  } else {
-    rankingSort = { key, dir: key === 'name' ? 'asc' : 'desc' };
-  }
+  const tripMode = els.rankMode.value === 'trip';
+  const current = tripMode ? tripSort : rankingSort;
+  const next =
+    current.key === key
+      ? { key, dir: current.dir === 'desc' ? 'asc' : 'desc' }
+      : { key, dir: key === 'name' ? 'asc' : 'desc' };
+  if (tripMode) tripSort = next;
+  else rankingSort = next;
   drawRanking();
 }
 
@@ -688,6 +967,45 @@ els.rankBody.addEventListener('keydown', (ev) => {
   onRankingPick(row.dataset.id);
 });
 els.source.addEventListener('change', run);
+
+// Ranking view + trip dates
+els.rankMode.onChange(() => {
+  savePrefs();
+  drawRanking();
+});
+els.tripStart.addEventListener('change', () => {
+  // Moving the start keeps the trip the same length
+  const length = daysBetween(trip.start, trip.end);
+  const start = els.tripStart.value || trip.start;
+  setTrip(start, addDays(start, length));
+});
+els.tripEnd.addEventListener('change', () =>
+  setTrip(trip.start, els.tripEnd.value || trip.end)
+);
+els.tripControls.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-trip-weekend]');
+  if (!btn) return;
+  const { start, end } = weekend(Number(btn.dataset.tripWeekend));
+  setTrip(start, end);
+});
+
+// Compare
+els.compareCard.addEventListener('toggle', () => {
+  savePrefs();
+  drawCompare();
+});
+els.cmp.forEach((sel) =>
+  sel.addEventListener('change', () => {
+    els.compareCard.dataset.picked = '1';
+    savePrefs();
+    drawCompare();
+  })
+);
+els.compareBody.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-open-resort]');
+  if (btn) onRankingPick(btn.dataset.openResort);
+});
+els.addCompare.addEventListener('click', () => addToCompare(els.spot.value));
 
 /* ----------------------- offline support -------------------------- */
 function updateOnlineState() {
