@@ -1,27 +1,11 @@
 // vite.config.js
 import { defineConfig, loadEnv } from 'vite';
+import { UPSTREAMS, MTNPOWDER } from './worker/upstreams.js';
 
-// Every upstream is reached as /api/<name>/<upstream path>. The proxy only
-// strips the /api/<name> prefix, so the browser-side URL rewrite in
-// src/groundTruth.js is the same for every resort.
-const UPSTREAMS = {
-  // Resort snow reports
-  killington: 'https://api.killington.com',
-  copper: 'https://api.coppercolorado.com',
-  snowbird: 'https://api.snowbird.com',
-  mtbachelor: 'https://api.mtbachelor.com',
-  eldora: 'https://api.eldora.com',
-  jacksonhole: 'https://jacksonhole-prod.zaneray.com',
-  sugarloaf: 'https://www.sugarloaf.com',
-  brighton: 'https://www.brightonresort.com',
-  sundayriver: 'https://www.sundayriver.com',
-  loon: 'https://www.loonmtn.com',
-  bigsky: 'https://www.bigskyresort.com',
-  // Weather
-  nws: 'https://api.weather.gov',
-};
+// Local dev only (`npm run dev`). In production the same /api/* routes are
+// served by the Cloudflare Worker in worker/index.js, from the same table.
 
-function stripPrefix(name, replacement = '') {
+function swapPrefix(name, replacement = '') {
   const re = new RegExp(`^/api/${name}`);
   return (path) => path.replace(re, replacement);
 }
@@ -32,36 +16,24 @@ export default defineConfig(({ mode }) => {
   const mtnPowderToken = env.MTNPOWDER_TOKEN || '';
 
   const proxy = {};
-  for (const [name, target] of Object.entries(UPSTREAMS)) {
+  for (const [name, { origin, basePath }] of Object.entries(UPSTREAMS)) {
     proxy[`/api/${name}`] = {
-      target,
+      target: origin,
       changeOrigin: true,
-      rewrite: stripPrefix(name),
+      rewrite: swapPrefix(name, basePath || ''),
     };
   }
 
-  proxy['/api/snotel'] = {
-    target: 'https://wcc.sc.egov.usda.gov',
-    changeOrigin: true,
-    rewrite: stripPrefix('snotel', '/awdbRestApi/services/v1'),
-  };
-
-  proxy['/api/open-meteo'] = {
-    target: 'https://api.open-meteo.com',
-    changeOrigin: true,
-    rewrite: stripPrefix('open-meteo', '/v1'),
-  };
-
   // MtnPowder: the token is appended here, server side.
   proxy['/api/mtnpowder'] = {
-    target: 'https://mtnpowder.com',
+    target: MTNPOWDER.origin,
     changeOrigin: true,
     rewrite: (path) => {
-      const rewritten = path.replace(/^\/api\/mtnpowder/, '/feed/v3.json');
+      const rewritten = path.replace(/^\/api\/mtnpowder/, MTNPOWDER.path);
       const sep = rewritten.includes('?') ? '&' : '?';
       return `${rewritten}${sep}bearer_token=${encodeURIComponent(mtnPowderToken)}`;
     },
   };
 
-  return { server: { proxy }, preview: { proxy } };
+  return { server: { proxy } };
 });

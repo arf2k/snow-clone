@@ -1,6 +1,30 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "snowclone-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"], "port": 5173 }
+    {
+      "name": "snowclone-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "snowclone-cf",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview:cf",
+        "--",
+        "--port",
+        "8787"
+      ],
+      "port": 8787
+    }
   ]
 }

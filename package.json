@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint src/*.js",
-    "format": "prettier --write \"src/*.js\"",
+    "lint": "eslint src worker",
+    "format": "prettier --write \"src/*.js\" \"worker/*.js\"",
     "smoke:test": "node scripts/smoke-test.js public/resorts.json",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:cf": "npm run build && wrangler dev",
+    "deploy": "npm run lint && npm run smoke:test && npm run build && wrangler deploy"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +23,8 @@
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^13.24.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "wrangler": "^4.162.0"
   },
   "dependencies": {
     "vite": "^7.2.2"
