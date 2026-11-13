@@ -19,6 +19,7 @@ import {
   initTabs,
   showNwsLinks,
   renderGroundTruth,
+  renderTerrain,
   renderRegionOptions,
   renderRanking,
   setRankingStatus,
@@ -398,14 +399,32 @@ function updateWindyTargets(elev) {
 }
 
 async function updateGroundTruthCard(resort, signal) {
+  let data = null;
   try {
-    const groundTruthData = await fetchGroundTruth(resort, { signal });
+    data = await fetchGroundTruth(resort, { signal });
     if (signal.aborted) return;
-    renderGroundTruth(groundTruthData); // ui.js handles null
+    renderGroundTruth(data); // ui.js handles null
   } catch (e) {
     if (signal.aborted) return;
     console.warn('Ground Truth fetch failed:', e);
     renderGroundTruth(null); // Hide card on any error
+  }
+
+  // Lifts and trails: usually part of the report; some feeds need a
+  // second request, which must not hold up or break the report above.
+  if (!data?.loadTerrain) {
+    renderTerrain(data?.terrain ?? null);
+    return;
+  }
+  renderTerrain('loading');
+  try {
+    const terrain = await data.loadTerrain({ signal });
+    if (signal.aborted) return;
+    renderTerrain(terrain);
+  } catch (e) {
+    if (signal.aborted) return;
+    console.warn('Lift/trail fetch failed:', e);
+    renderTerrain(null);
   }
 }
 
@@ -446,6 +465,7 @@ async function run() {
   updateWindyTargets(elev);
   renderRealityLinks(r);
   renderGroundTruth(null); // don't leave the previous resort's report up
+  renderTerrain(null);
 
   const groundTruthDone = updateGroundTruthCard(r, signal);
 

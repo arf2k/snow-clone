@@ -11,9 +11,10 @@
 //
 // ttl = seconds a response is cached at Cloudflare's edge.
 
-const DRUPAL_REPORT = [/^\/api\/v1\/dor\/drupal\/snow-reports$/];
+// Snow report, plus the lift and trail status lists that sit beside it
+const DRUPAL_REPORT = [/^\/api\/v1\/dor\/drupal\/(snow-reports|lifts|trails)$/];
 const REPORTPAL = [/^\/api\/reportpal$/];
-const REPORT_TTL = 600;
+const REPORT_TTL = 300; // lift status changes quickly on a windy day
 
 export const UPSTREAMS = {
   // ---- Resort snow reports ----
