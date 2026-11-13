@@ -25,11 +25,41 @@
   <body>
     <header>
       <h1>Snow-Chase</h1>
-      <div class="muted">Forecast, on-mountain conditions and models for one resort at a time.</div>
+      <div class="muted">Where it is going to snow, then forecast, on-mountain conditions and models for the resort you pick.</div>
     </header>
 
     <main class="wrap">
-      <section class="card">
+      <section class="card" id="rankingCard">
+        <div class="rank-title">
+          <h2>Powder Ranking</h2>
+          <span id="rankStatus" class="muted" role="status"></span>
+        </div>
+        <div class="controls">
+          <label for="rankRegion">Region:</label>
+          <select id="rankRegion"><option value="">All regions</option></select>
+          <button id="rankRefresh" type="button">Refresh</button>
+          <span class="muted">Forecast snowfall at <b id="rankElevLabel">summit</b> elevation · Open-Meteo · tap a resort for detail</span>
+        </div>
+        <div class="rank-scroll">
+          <table class="rank" aria-label="Resorts ranked by forecast snowfall">
+            <thead id="rankHead">
+              <tr>
+                <th class="num">#</th>
+                <th><button type="button" data-sort="name">Resort <span class="arrow"></span></button></th>
+                <th class="num"><button type="button" data-sort="snow24">24h <span class="arrow"></span></button></th>
+                <th class="num"><button type="button" data-sort="snow72">72h <span class="arrow"></span></button></th>
+                <th class="num"><button type="button" data-sort="snow7d">7 days <span class="arrow"></span></button></th>
+                <th class="num"><button type="button" data-sort="gust24" title="Strongest forecast gust in the next 24 hours">Max gust <span class="arrow"></span></button></th>
+              </tr>
+            </thead>
+            <tbody id="rankBody">
+              <tr><td colspan="6" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="detailTop" style="margin-top:16px">
         <div class="controls">
           <label for="spot">Target:</label>
           <select id="spot"></select>

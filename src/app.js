@@ -1,5 +1,10 @@
 import '../styles/main.css';
-import { RESORTS_JSON_URL, DEFAULT_OVERLAY, DEFAULT_ZOOM } from './config.js';
+import {
+  RESORTS_JSON_URL,
+  DEFAULT_OVERLAY,
+  DEFAULT_ZOOM,
+  WIND_HOLD_GUST_MPH,
+} from './config.js';
 import {
   els,
   setStatus,
@@ -14,11 +19,15 @@ import {
   initTabs,
   showNwsLinks,
   renderGroundTruth,
+  renderRegionOptions,
+  renderRanking,
+  setRankingStatus,
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { buildWindyUrls } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
 import { fetchGroundTruth } from './groundTruth.js';
+import { fetchRanking, currentHourIndex } from './ranking.js';
 
 let RESORTS = [];
 // One budget per provider attempt. NWS needs a /points lookup followed by
@@ -29,6 +38,13 @@ const HOUR_MS = 3600000;
 let windyLoaded = false;
 let pendingWindySrc = '';
 let activeRun = null; // AbortController for the run currently on screen
+
+// Ranking state
+const RANKING_TTL_MS = 15 * 60000;
+const rankingCache = new Map(); // elevKey -> { at, rows }
+let rankingLoad = null; // AbortController for the ranking request in flight
+let rankingRows = [];
+let rankingSort = { key: 'snow72', dir: 'desc' };
 
 /* ----------------------- saved selection ----------------------- */
 function loadPrefs() {
@@ -49,6 +65,7 @@ function savePrefs() {
         source: els.source.value,
         overlay: els.overlaySel.value,
         zoom: els.zoomSel.value,
+        region: els.rankRegion.value,
       })
     );
   } catch {
@@ -68,6 +85,7 @@ function applyPrefs() {
   restore(els.source, prefs.source);
   restore(els.overlaySel, prefs.overlay);
   restore(els.zoomSel, prefs.zoom);
+  restore(els.rankRegion, prefs.region);
 }
 
 /* ----------------------- NWS helpers ----------------------- */
@@ -147,15 +165,8 @@ function deriveTotalsFromNwsGrid(gdJson) {
 }
 
 /* -------------------- Open-Meteo Adapters ------------------- */
-// hourly.time is unix seconds (see openmeteo.js)
-function getOmCurrentHourIndex(hourly, now = Date.now()) {
-  const idx = hourly.time.findIndex((t) => t * 1000 > now);
-  if (idx === -1) return hourly.time.length - 1;
-  return idx > 0 ? idx - 1 : 0;
-}
-
 function adaptOmToKpis(omJson) {
-  const i = getOmCurrentHourIndex(omJson.hourly);
+  const i = currentHourIndex(omJson.hourly);
   const temp = omJson.hourly.temperature_2m[i];
   const gust = omJson.hourly.wind_gusts_10m[i];
   const firstPeriod = {
@@ -171,7 +182,7 @@ function adaptOmToKpis(omJson) {
 // timestamp, so the window starts with the hour after the current one.
 function adaptOmToTotals(omJson) {
   const { snowfall, precipitation } = omJson.hourly;
-  const start = getOmCurrentHourIndex(omJson.hourly) + 1;
+  const start = currentHourIndex(omJson.hourly) + 1;
   const sum = (series, hours) =>
     series.slice(start, start + hours).reduce((acc, v) => acc + (v || 0), 0);
   return {
@@ -195,7 +206,7 @@ function adaptOmToHourly(omJson) {
     wind_gusts_10m: gustUnit,
   } = omJson.hourly_units;
   const periods = [];
-  for (let i = getOmCurrentHourIndex(omJson.hourly); i < time.length; i++) {
+  for (let i = currentHourIndex(omJson.hourly); i < time.length; i++) {
     periods.push({
       startTime: new Date(time[i] * 1000).toISOString(),
       temperature: Math.round(temperature_2m[i]),
@@ -233,6 +244,7 @@ async function loadResorts() {
         'resorts.json loaded but no ready entries (check elevations).'
       );
     renderResortOptions(RESORTS);
+    renderRegionOptions(RESORTS);
     els.spot.value = RESORTS[0].id;
     applyPrefs();
     setStatus('Resorts loaded ✓');
@@ -478,19 +490,125 @@ function loadWindyFrame() {
 }
 // ----------------------------------------------------------
 
+/* --------------------------- ranking ------------------------------ */
+function drawRanking() {
+  const region = els.rankRegion.value;
+  const { key, dir } = rankingSort;
+  const sign = dir === 'asc' ? 1 : -1;
+  const rows = rankingRows
+    .filter((row) => !region || row.region === region)
+    .sort((a, b) => {
+      if (key === 'name') return sign * a.name.localeCompare(b.name);
+      // rows with no value always sink to the bottom
+      if (a[key] == null) return b[key] == null ? 0 : 1;
+      if (b[key] == null) return -1;
+      return sign * (a[key] - b[key]) || a.name.localeCompare(b.name);
+    });
+  renderRanking(rows, {
+    sort: rankingSort,
+    selectedId: els.spot.value,
+    windHoldMph: WIND_HOLD_GUST_MPH,
+  });
+}
+
+async function loadRanking({ force = false } = {}) {
+  const elevKey = els.elev.value;
+  els.rankElevLabel.textContent = elevKey;
+
+  const cached = rankingCache.get(elevKey);
+  if (!force && cached && Date.now() - cached.at < RANKING_TTL_MS) {
+    rankingRows = cached.rows;
+    setRankingStatus(`Updated ${new Date(cached.at).toLocaleTimeString()}`);
+    drawRanking();
+    return;
+  }
+
+  rankingLoad?.abort();
+  const controller = new AbortController();
+  rankingLoad = controller;
+  const signal = AbortSignal.any([
+    controller.signal,
+    AbortSignal.timeout(WEATHER_TIMEOUT_MS),
+  ]);
+
+  setRankingStatus('Loading…');
+  try {
+    const rows = await fetchRanking(RESORTS, elevKey, { signal });
+    if (controller.signal.aborted) return;
+    const at = Date.now();
+    rankingCache.set(elevKey, { at, rows });
+    rankingRows = rows;
+    setRankingStatus(`Updated ${new Date(at).toLocaleTimeString()}`);
+    drawRanking();
+  } catch (e) {
+    if (controller.signal.aborted) return; // superseded by a newer request
+    console.error('Ranking failed:', e);
+    rankingRows = [];
+    drawRanking();
+    setRankingStatus(
+      signal.aborted ? 'Ranking timed out' : `Ranking failed: ${e.message}`
+    );
+  }
+}
+
+function onRankingSort(key) {
+  if (rankingSort.key === key) {
+    rankingSort.dir = rankingSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    rankingSort = { key, dir: key === 'name' ? 'asc' : 'desc' };
+  }
+  drawRanking();
+}
+
+function onRankingPick(id) {
+  if (!RESORTS.some((r) => r.id === id)) return;
+  els.spot.value = id;
+  run();
+  drawRanking();
+  els.detailTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 /* ------------------------- event wiring --------------------------- */
 els.refresh.addEventListener('click', run);
 els.overlaySel.addEventListener('change', updateWindyMap);
 els.zoomSel.addEventListener('change', updateWindyMap);
 els.loadWindy?.addEventListener('click', loadWindyFrame);
-els.spot.addEventListener('change', run);
-els.elev.addEventListener('change', run);
+els.spot.addEventListener('change', () => {
+  run();
+  drawRanking(); // move the row highlight
+});
+els.elev.addEventListener('change', () => {
+  run();
+  loadRanking();
+});
+els.rankRegion.addEventListener('change', () => {
+  savePrefs();
+  drawRanking();
+});
+els.rankRefresh.addEventListener('click', () => loadRanking({ force: true }));
+els.rankHead.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-sort]');
+  if (btn) onRankingSort(btn.dataset.sort);
+});
+els.rankBody.addEventListener('click', (ev) => {
+  const row = ev.target.closest('tr[data-id]');
+  if (row) onRankingPick(row.dataset.id);
+});
+els.rankBody.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const row = ev.target.closest('tr[data-id]');
+  if (!row) return;
+  ev.preventDefault();
+  onRankingPick(row.dataset.id);
+});
 els.source.addEventListener('change', run);
 
 /* --------------------------- boot -------------------------------- */
 async function boot() {
   initTabs();
   await loadResorts();
+  if (!RESORTS.length) return;
+  loadRanking();
   run();
 }
 

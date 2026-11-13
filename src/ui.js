@@ -49,6 +49,15 @@ export const els = {
   windyFrame: document.getElementById('windy'),
   openWindy: document.getElementById('openWindy'),
 
+  // ranking
+  rankRegion: document.getElementById('rankRegion'),
+  rankRefresh: document.getElementById('rankRefresh'),
+  rankStatus: document.getElementById('rankStatus'),
+  rankElevLabel: document.getElementById('rankElevLabel'),
+  rankHead: document.getElementById('rankHead'),
+  rankBody: document.getElementById('rankBody'),
+  detailTop: document.getElementById('detailTop'),
+
   // SNOTEL / Ground Truth elements
   groundTruthCard: document.getElementById('groundTruthCard'),
   snotelTitle: document.getElementById('snotelTitle'),
@@ -294,4 +303,89 @@ export function renderGroundTruth(data) {
     ${excerptHtml}
     ${sourceHtml}
   `;
+}
+
+// ---- Powder ranking ----
+function esc(s) {
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        c
+      ]
+  );
+}
+
+export function setRankingStatus(msg) {
+  els.rankStatus.textContent = msg || '';
+}
+
+export function renderRegionOptions(resorts) {
+  const regions = [...new Set(resorts.map((r) => r.region))].sort();
+  els.rankRegion.innerHTML =
+    '<option value="">All regions</option>' +
+    regions.map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+}
+
+function snowCell(inches, isSorted) {
+  if (inches == null) return '<td class="num muted">--</td>';
+  // Anything under a tenth of an inch reads as "no snow"
+  const none = inches < 0.05;
+  const cls = ['num', none ? 'muted' : '', isSorted ? 'sorted' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `<td class="${cls}">${none ? '0' : `${inches.toFixed(1)}"`}</td>`;
+}
+
+/**
+ * @param {Array} rows - already filtered and sorted
+ * @param {{sort:{key:string,dir:string}, selectedId:string, windHoldMph:number}} opts
+ */
+export function renderRanking(rows, { sort, selectedId, windHoldMph }) {
+  // header sort indicators
+  els.rankHead.querySelectorAll('th').forEach((th) => {
+    const btn = th.querySelector('button[data-sort]');
+    if (!btn) return;
+    const active = btn.dataset.sort === sort.key;
+    th.setAttribute(
+      'aria-sort',
+      active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
+    );
+    btn.querySelector('.arrow').textContent = active
+      ? sort.dir === 'asc'
+        ? '▲'
+        : '▼'
+      : '';
+  });
+
+  if (!rows.length) {
+    els.rankBody.innerHTML =
+      '<tr><td colspan="6" class="muted">No resorts to show.</td></tr>';
+    return;
+  }
+
+  els.rankBody.innerHTML = rows
+    .map((row, i) => {
+      const windy = row.gust24 != null && row.gust24 >= windHoldMph;
+      const gust =
+        row.gust24 == null
+          ? '<td class="num muted">--</td>'
+          : `<td class="num${windy ? ' windy' : ''}"${
+              windy
+                ? ` title="Gusts at or above ${windHoldMph} mph: wind-hold risk"`
+                : ''
+            }>${windy ? '⚠ ' : ''}${Math.round(row.gust24)} mph</td>`;
+      return `
+      <tr data-id="${esc(row.id)}" tabindex="0"${
+        row.id === selectedId ? ' class="selected" aria-current="true"' : ''
+      }>
+        <td class="num muted">${i + 1}</td>
+        <td>${esc(row.name)}<span class="rank-region muted">${esc(row.region)}</span></td>
+        ${snowCell(row.snow24, sort.key === 'snow24')}
+        ${snowCell(row.snow72, sort.key === 'snow72')}
+        ${snowCell(row.snow7d, sort.key === 'snow7d')}
+        ${gust}
+      </tr>`;
+    })
+    .join('');
 }
