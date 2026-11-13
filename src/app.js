@@ -485,6 +485,7 @@ function loadWindyFrame() {
   const { elev } = getSelected();
   if (!elev) return;
   if (!pendingWindySrc) updateWindyTargets(elev);
+  els.windyFrame.hidden = false; // no empty map box until it's asked for
   els.windyFrame.src = pendingWindySrc;
   windyLoaded = true;
 }
@@ -602,6 +603,29 @@ els.rankBody.addEventListener('keydown', (ev) => {
   onRankingPick(row.dataset.id);
 });
 els.source.addEventListener('change', run);
+
+/* ----------------------- offline support -------------------------- */
+function updateOnlineState() {
+  els.offlineBanner.hidden = navigator.onLine;
+}
+window.addEventListener('online', () => {
+  updateOnlineState();
+  // Back online: replace whatever was served from the offline copy
+  loadRanking({ force: true });
+  run();
+});
+window.addEventListener('offline', updateOnlineState);
+updateOnlineState();
+
+// The service worker keeps the last good copy of the app and its data for
+// offline use. Production only, so it never caches dev-server modules.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .catch((e) => console.warn('Service worker registration failed:', e));
+  });
+}
 
 /* --------------------------- boot -------------------------------- */
 async function boot() {

@@ -4,13 +4,13 @@ const globals = require('globals');
 
 module.exports = [
   {
-    ignores: ['node_modules/**', 'public/**', 'scripts/**'],
+    ignores: ['node_modules/**', 'dist/**', '.wrangler/**', 'public/**', 'scripts/**'],
   },
   {
-    files: ['src/**/*.js', 'scripts/**/*.js'],
+    files: ['src/**/*.js', 'scripts/**/*.js', 'worker/**/*.js'],
     languageOptions: {
       sourceType: 'module',
-      ecmaVersion: 2021,
+      ecmaVersion: 2022,
       globals: {
         ...globals.browser,
         ...globals.node,

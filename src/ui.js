@@ -11,6 +11,8 @@ export const els = {
   zoomSel: document.getElementById('zoom'),
   loadWindy: document.getElementById('loadWindy'),
 
+  offlineBanner: document.getElementById('offlineBanner'),
+
   // status + errors
   status: document.getElementById('status'),
   err: document.getElementById('error'),
@@ -64,6 +66,32 @@ export const els = {
   snotelData: document.getElementById('snotelData'),
 };
 
+// ---- escaping ----
+// Everything written with innerHTML goes through esc(). Forecast text and
+// resort reports come from third-party feeds and must never be able to
+// inject markup into the page.
+function esc(s) {
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        c
+      ]
+  );
+}
+
+// Only plain web links may be used as an href
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : '#';
+  } catch {
+    return '#';
+  }
+}
+
+const ATTR_TYPES = new Set(['info', 'success', 'warning', 'error']);
+
 // ---- small helpers ----
 export function setStatus(msg) {
   els.status.textContent = msg || '';
@@ -108,21 +136,25 @@ export function renderResortOptions(resorts) {
     return;
   }
   els.spot.innerHTML = resorts
-    .map((r) => `<option value="${r.id}">${r.name}</option>`)
+    .map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`)
     .join('');
 }
 
 export function renderRealityLinks(r) {
   const items = [];
   (r?.links?.cams || []).forEach((url) =>
-    items.push(`<a href="${url}" target="_blank" rel="noopener">Cams</a>`)
+    items.push(
+      `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener">Cams</a>`
+    )
   );
   (r?.links?.dot || []).forEach((url) =>
-    items.push(`<a href="${url}" target="_blank" rel="noopener">Roads</a>`)
+    items.push(
+      `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener">Roads</a>`
+    )
   );
   if (r?.links?.official)
     items.push(
-      `<a href="${r.links.official}" target="_blank" rel="noopener">Official</a>`
+      `<a href="${esc(safeUrl(r.links.official))}" target="_blank" rel="noopener">Official</a>`
     );
   els.realLinks.innerHTML = items.join(' • ');
 }
@@ -150,12 +182,12 @@ export function renderPeriods(forecast) {
       (p) => `
     <div class="period">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-        <strong>${p.name}</strong>
-        <span class="muted">${p.startTime ? new Date(p.startTime).toLocaleString() : ''}</span>
+        <strong>${esc(p.name)}</strong>
+        <span class="muted">${p.startTime ? esc(new Date(p.startTime).toLocaleString()) : ''}</span>
       </div>
-      <div style="margin-top:6px">${p.detailedForecast || p.shortForecast}</div>
+      <div style="margin-top:6px">${esc(p.detailedForecast || p.shortForecast)}</div>
       <div class="muted" style="margin-top:6px">
-        Wind: ${p.windSpeed}${p.windGust ? ` (gust ${p.windGust})` : ''}
+        Wind: ${esc(p.windSpeed)}${p.windGust ? ` (gust ${esc(p.windGust)})` : ''}
       </div>
     </div>
   `
@@ -204,12 +236,12 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
 
     rows.push(`
       <tr>
-        <td>${fmtTime(p.startTime)}</td>
-        <td>${p.shortForecast ?? ''}</td>
-        <td class="num">${num(p.temperature, `°${p.temperatureUnit ?? ''}`)}</td>
+        <td>${esc(fmtTime(p.startTime))}</td>
+        <td>${esc(p.shortForecast ?? '')}</td>
+        <td class="num">${esc(num(p.temperature, `°${p.temperatureUnit ?? ''}`))}</td>
         <td class="num">${pct(popVal)}</td>
-        <td class="num">${p.windSpeed ?? '--'}</td>
-        <td class="num">${p.windGust ?? '--'}</td>
+        <td class="num">${esc(p.windSpeed ?? '--')}</td>
+        <td class="num">${esc(p.windGust ?? '--')}</td>
       </tr>
     `);
   }
@@ -245,8 +277,8 @@ export function renderGroundTruth(data) {
     if (value == null || value === '') return;
     kpis.push(`
       <div class="kpi">
-        <span class="muted">${label}</span>
-        <b>${value}${unit}</b>
+        <span class="muted">${esc(label)}</span>
+        <b>${esc(value)}${esc(unit)}</b>
       </div>
     `);
   };
@@ -279,8 +311,8 @@ export function renderGroundTruth(data) {
       // attr = { label, value, type: 'info'|'success'|'warning'|'error' }
       attrHtml += `
         <div class="attr-row">
-          <span class="attr-label">${attr.label}:</span>
-          <span class="attr-value ${attr.type || 'info'}">${attr.value}</span>
+          <span class="attr-label">${esc(attr.label)}:</span>
+          <span class="attr-value ${ATTR_TYPES.has(attr.type) ? attr.type : 'info'}">${esc(attr.value)}</span>
         </div>
       `;
     });
@@ -290,11 +322,11 @@ export function renderGroundTruth(data) {
   // 3. Excerpt
   let excerptHtml = '';
   if (data.excerpt) {
-    excerptHtml = `<div class="gt-excerpt">"${data.excerpt}"</div>`;
+    excerptHtml = `<div class="gt-excerpt">"${esc(data.excerpt)}"</div>`;
   }
 
   // 4. Source
-  const sourceHtml = `<div class="gt-source">Source: ${data.source || 'Unknown'}</div>`;
+  const sourceHtml = `<div class="gt-source">Source: ${esc(data.source || 'Unknown')}</div>`;
 
   // Assemble
   els.snotelData.innerHTML = `
@@ -306,16 +338,6 @@ export function renderGroundTruth(data) {
 }
 
 // ---- Powder ranking ----
-function esc(s) {
-  return String(s ?? '').replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
-        c
-      ]
-  );
-}
-
 export function setRankingStatus(msg) {
   els.rankStatus.textContent = msg || '';
 }

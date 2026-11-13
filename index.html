@@ -2,25 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Where it is going to snow, with forecast and on-mountain conditions per resort." />
+    <meta name="color-scheme" content="dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Snow-Chase" />
     <meta name="theme-color" content="#0b1220" />
     <title>Snow-Chase</title>
     
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" sizes="192x192" href="/icons/icon-192.svg" type="image/svg+xml" />
-    <link rel="icon" sizes="512x512" href="/icons/icon-512.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     
-    <style>
-      /* tiny tab styles kept here to avoid touching main.css yet */
-      .tabs { display:flex; gap:8px; align-items:center; margin:10px 0 6px; }
-      .tab { background:#0b1220; color:#e5e7eb; border:1px solid #1f2937; border-radius:999px; padding:8px 12px; font-size:13px; cursor:pointer; }
-      .tab.active { border-color:#60a5fa; box-shadow:0 0 0 1px #60a5fa inset; }
-      [hidden] { display:none !important; }
-      table.hourly { width:100%; border-collapse: collapse; font-size: 13px; }
-      table.hourly th, table.hourly td { border-bottom:1px solid #1f2937; padding:8px 6px; text-align:left; }
-      table.hourly th { color:#9ca3af; font-weight:600; }
-      table.hourly td.num { text-align:right; font-variant-numeric: tabular-nums; }
-    </style>
   </head>
   <body>
     <header>
@@ -28,16 +23,20 @@
       <div class="muted">Where it is going to snow, then forecast, on-mountain conditions and models for the resort you pick.</div>
     </header>
 
+    <div id="offlineBanner" class="offline" role="status" hidden>Offline: showing the last data saved on this device.</div>
+
     <main class="wrap">
       <section class="card" id="rankingCard">
         <div class="rank-title">
           <h2>Powder Ranking</h2>
-          <span id="rankStatus" class="muted" role="status"></span>
+          <span class="rank-tools">
+            <span id="rankStatus" class="muted" role="status"></span>
+            <button id="rankRefresh" class="icon-btn" type="button" aria-label="Refresh ranking" title="Refresh ranking">↻</button>
+          </span>
         </div>
         <div class="controls">
           <label for="rankRegion">Region:</label>
           <select id="rankRegion"><option value="">All regions</option></select>
-          <button id="rankRefresh" type="button">Refresh</button>
           <span class="muted">Forecast snowfall at <b id="rankElevLabel">summit</b> elevation · Open-Meteo · tap a resort for detail</span>
         </div>
         <div class="rank-scroll">
@@ -114,6 +113,7 @@
             <div class="links" style="margin-bottom:8px" id="hourlyLinks">
               <a id="linkHourly" target="_blank" rel="noopener">Hourly JSON ▸</a>
             </div>
+            <div class="table-scroll">
             <table class="hourly" aria-label="Hourly forecast">
               <thead>
                 <tr>
@@ -128,6 +128,7 @@
               <tbody id="hourlyBody">
                 </tbody>
             </table>
+            </div>
           </div>
         </section>
 
@@ -145,7 +146,7 @@
             <select id="zoom"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
             <button id="loadWindy" type="button">Load Windy Map</button>
           </div>
-          <iframe id="windy" title="Windy" loading="lazy"></iframe>
+          <iframe id="windy" title="Windy" loading="lazy" hidden></iframe>
           <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
         </section>
       </div>

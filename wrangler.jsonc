@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "snow-chase",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-09-01",
+
+  // The built app. Cloudflare serves these files itself; only /api/* reaches
+  // the Worker code.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "404-page"
+  },
+
+  // Per-visitor limit on /api/* (keyed by IP in worker/index.js).
+  // A normal page load makes about 6 API calls.
+  "ratelimits": [
+    {
+      "name": "API_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 120, "period": 60 }
+    }
+  ],
+
+  "observability": { "enabled": true }
+
+  // Secrets are NOT set here. Run once:  npx wrangler secret put MTNPOWDER_TOKEN
+}

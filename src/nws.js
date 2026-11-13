@@ -4,8 +4,8 @@ const NWS_BASE = '/api/nws';
 
 const NWS_HEADERS = {
   Accept: 'application/geo+json',
-  // NWS requires a User-Agent; customize this string if you want
-  'User-Agent': 'snow-dashboard (contact: example@example.com)',
+  // The User-Agent NWS asks for is set server side (worker/index.js);
+  // browsers don't let page scripts choose it.
 };
 
 function proxyNwsUrl(url) {

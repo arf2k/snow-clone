@@ -109,3 +109,63 @@ table.rank tbody tr.selected { background:#13233f; box-shadow:inset 3px 0 0 var(
   table.rank th, table.rank td { padding:8px 6px; font-size:13px; }
   .rank-region { display:none; }
 }
+
+/* ---- Tabs + hourly table ---- */
+.tabs { display:flex; gap:8px; align-items:center; margin:10px 0 6px; }
+.tab { background:#0b1220; color:#e5e7eb; border:1px solid #1f2937; border-radius:999px; padding:8px 12px; font-size:13px; cursor:pointer; }
+.tab.active { border-color:#60a5fa; box-shadow:0 0 0 1px #60a5fa inset; }
+[hidden] { display:none !important; }
+table.hourly { width:100%; border-collapse: collapse; font-size: 13px; }
+table.hourly th, table.hourly td { border-bottom:1px solid #1f2937; padding:8px 6px; text-align:left; }
+table.hourly th { color:#9ca3af; font-weight:600; }
+table.hourly td.num { text-align:right; font-variant-numeric: tabular-nums; }
+
+/* ---- Touch + phone layout ---- */
+html { -webkit-text-size-adjust:100%; }
+body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:contain; }
+header { padding-top:max(16px, env(safe-area-inset-top)); padding-left:max(20px, env(safe-area-inset-left)); padding-right:max(20px, env(safe-area-inset-right)); }
+.wrap { padding-left:max(16px, env(safe-area-inset-left)); padding-right:max(16px, env(safe-area-inset-right)); padding-bottom:max(16px, env(safe-area-inset-bottom)); }
+select, button { min-height:44px; } /* comfortable tap target */
+button:active, .tab:active { background:#13233f; }
+select:focus-visible, button:focus-visible, a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+table.rank th button { display:block; padding:4px 0; }
+table.rank th.num button { margin-left:auto; }
+.offline { background:#78350f; color:#fef3c7; font-size:13px; text-align:center; padding:8px 16px; }
+
+@media (max-width:640px) {
+  /* The header scrolls away on a phone; screen height is too scarce */
+  header { position:static; padding-bottom:12px; }
+  header .muted { display:none; }
+  .wrap { padding-top:12px; }
+  .card { padding:12px; border-radius:12px; }
+  .row { gap:12px; }
+
+  /* 16px stops iOS Safari zooming the page when a control gets focus */
+  select, button, .tab { font-size:16px; }
+
+  /* Controls: label beside a full-width select, actions on their own row */
+  .controls { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:8px 10px; }
+  .controls > select { width:100%; min-width:0; }
+  .controls > button, .controls > span { grid-column:1 / -1; }
+
+  .kpis, .gt-grid { gap:8px; }
+  .kpi { padding:8px 4px; }
+  .kpi b { font-size:17px; }
+  iframe { height:380px; }
+
+  /* Ranking: drop the position column, let long resort names wrap */
+  .rank-scroll { max-height:62vh; }
+  table.rank th:first-child, table.rank td:first-child { display:none; }
+  table.rank td:nth-child(2) { white-space:normal; }
+  table.rank th, table.rank td { padding:10px 6px; font-size:13px; }
+  .rank-region { display:none; }
+  .rank-title { align-items:center; }
+
+  table.hourly td:first-child { white-space:nowrap; }
+  .attr-row { flex-direction:column; align-items:flex-start; gap:2px; }
+  .attr-value { text-align:left; }
+}
+
+.rank-tools { display:flex; align-items:center; gap:10px; }
+.icon-btn { min-width:44px; padding:0; font-size:20px; line-height:1; }
