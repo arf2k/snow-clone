@@ -20,12 +20,13 @@
   <body>
     <header>
       <h1>Snow-Chase</h1>
-      <div class="muted">Where it is going to snow, then forecast, on-mountain conditions and models for the resort you pick.</div>
+      <div class="muted">Where it is going to snow, and what each mountain is reporting now.</div>
     </header>
 
     <div id="offlineBanner" class="offline" role="status" hidden>Offline: showing the last data saved on this device.</div>
 
     <main class="wrap">
+      <!-- ============ Ranking ============ -->
       <section class="card" id="rankingCard">
         <div class="rank-title">
           <h2>Powder Ranking</h2>
@@ -58,109 +59,123 @@
         </div>
       </section>
 
-      <section class="card" id="detailTop" style="margin-top:16px">
+      <!-- ============ Resort: header + verdict ============ -->
+      <section class="card resort-head" id="detailTop">
+        <div class="resort-top">
+          <label class="sr-only" for="spot">Resort</label>
+          <select id="spot" class="resort-select"></select>
+          <button id="refresh" class="icon-btn" type="button" aria-label="Refresh this resort" title="Refresh this resort">↻</button>
+        </div>
+
+        <fieldset id="elev" class="seg">
+          <legend class="sr-only">Elevation</legend>
+          <label><input type="radio" name="elev" value="summit" checked /><span>Summit</span></label>
+          <label><input type="radio" name="elev" value="mid" /><span>Mid</span></label>
+          <label><input type="radio" name="elev" value="base" /><span>Base</span></label>
+        </fieldset>
+
+        <div class="verdict" id="verdict" aria-live="polite">
+          <div class="vtile"><span class="vlabel" id="vFellLabel">New snow</span><b id="vFell">--</b><span class="vsub" id="vFellSub">reported, 24h</span></div>
+          <div class="vtile"><span class="vlabel">Next 24h</span><b id="vComing">--</b><span class="vsub" id="vComingSub">forecast</span></div>
+          <div class="vtile"><span class="vlabel">Lifts</span><b id="vLifts">--</b><span class="vsub" id="vLiftsSub">open</span></div>
+          <div class="vtile"><span class="vlabel">Wind</span><b id="vWind">--</b><span class="vsub" id="vWindSub">max gust, 24h</span></div>
+        </div>
+
+        <div class="resort-foot">
+          <span id="realLinks" class="links"></span>
+          <span id="status" class="muted" role="status"></span>
+        </div>
+        <div id="error" class="err"></div>
+      </section>
+
+      <div class="row">
+        <!-- ============ Now: what the mountain reports ============ -->
+        <section class="card" id="groundTruthCard">
+          <div class="card-title">
+            <h2>Now</h2>
+            <span class="tag reported">Reported</span>
+          </div>
+          <div id="snotelData"></div>
+          <div id="terrain" hidden></div>
+          <div id="reportExtra"></div>
+        </section>
+
+        <!-- ============ Next: what the models forecast ============ -->
+        <section class="card" id="forecastCard">
+          <div class="card-title">
+            <h2>Next</h2>
+            <span class="tag forecast">Forecast</span>
+          </div>
+
+          <div id="forecastCompare"></div>
+
+          <div class="kpis">
+            <div class="kpi"><span class="muted">Temp now</span><b id="kpiTemp">--</b></div>
+            <div class="kpi"><span class="muted">Wind</span><b id="kpiGust">--</b></div>
+            <div class="kpi"><span class="muted">Chance of precip</span><b id="kpiPoP">--</b></div>
+          </div>
+
+          <h3 class="sub">Day by day</h3>
+          <div id="periods" class="days"></div>
+
+          <details class="fold" id="hourlyDetails">
+            <summary>Hourly, next 36 hours</summary>
+            <div class="table-scroll">
+              <table class="hourly" aria-label="Hourly forecast">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Weather</th>
+                    <th class="num">Temp</th>
+                    <th class="num">Precip</th>
+                    <th class="num">Wind</th>
+                    <th class="num">Gust</th>
+                  </tr>
+                </thead>
+                <tbody id="hourlyBody"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+      </div>
+
+      <!-- ============ More: map, source, raw data ============ -->
+      <details class="card more" id="moreCard">
+        <summary><h2>Map and settings</h2></summary>
+
+        <h3 class="sub">Windy map</h3>
         <div class="controls">
-          <label for="spot">Target:</label>
-          <select id="spot"></select>
-          <label for="elev">Elevation:</label>
-          <select id="elev">
-            <option value="summit" selected>Summit</option>
-            <option value="mid">Mid</option>
-            <option value="base">Base</option>
+          <label for="overlay">Overlay:</label>
+          <select id="overlay">
+            <option value="snow">Snow</option>
+            <option value="rain">Rain</option>
+            <option value="temp">Temperature</option>
+            <option value="wind">Wind</option>
           </select>
-          <label for="source">Source:</label>
+          <label for="zoom">Zoom:</label>
+          <select id="zoom"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
+          <button id="loadWindy" type="button">Load map</button>
+        </div>
+        <iframe id="windy" title="Windy" loading="lazy" hidden></iframe>
+        <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
+
+        <h3 class="sub">Forecast source</h3>
+        <div class="controls">
+          <label for="source">Detail from:</label>
           <select id="source">
             <option value="nws" selected>NWS</option>
             <option value="open-meteo">Open-Meteo</option>
           </select>
-          <button id="refresh">Fetch Forecast</button>
-          <span id="status" class="muted"></span>
+          <span class="muted">Used for the day-by-day and hourly forecast. If it fails, the other is used automatically.</span>
         </div>
-      </section>
 
-      <div class="row" style="margin-top:16px">
-        <section class="card">
-          <h2>Forecast Data</h2>
-
-          <div class="tabs">
-            <button id="tabForecast" class="tab active" type="button">Forecast</button>
-            <button id="tabHourly" class="tab" type="button">Hourly</button>
-          </div>
-
-          <div id="paneForecast">
-            <div class="kpis">
-              <div class="kpi"><span class="muted">Temp</span><b id="kpiTemp">--</b></div>
-              <div class="kpi"><span class="muted">Wind Gust</span><b id="kpiGust">--</b></div>
-              <div class="kpi"><span class="muted">Precip Prob</span><b id="kpiPoP">--</b></div>
-            </div>
-
-            <div class="kpis" style="margin-top:10px">
-              <div class="kpi"><span class="muted">Snow 24h</span><b id="kpiSnow24">--</b></div>
-              <div class="kpi"><span class="muted">Snow 72h</span><b id="kpiSnow72">--</b></div>
-              <div class="kpi"><span class="muted">QPF 24h</span><b id="kpiQpf24">--</b></div>
-            </div>
-
-            <div class="links" style="margin-top:10px" id="nwsLinks">
-              <a id="linkPoint" target="_blank" rel="noopener">NWS Point ▸</a> •
-              <a id="linkGrid"  target="_blank" rel="noopener">Grid Data ▸</a>
-            </div>
-
-            <div id="periods" class="grid" style="margin-top:12px"></div>
-            <div id="error" class="err"></div>
-          </div>
-
-          <div id="paneHourly" hidden>
-            <div class="links" style="margin-bottom:8px" id="hourlyLinks">
-              <a id="linkHourly" target="_blank" rel="noopener">Hourly JSON ▸</a>
-            </div>
-            <div class="table-scroll">
-            <table class="hourly" aria-label="Hourly forecast">
-              <thead>
-                <tr>
-                  <th style="width:34%">Time</th>
-                  <th>Wx</th>
-                  <th class="num">Temp</th>
-                  <th class="num">PoP</th>
-                  <th class="num">Wind</th>
-                  <th class="num">Gust</th>
-                </tr>
-              </thead>
-              <tbody id="hourlyBody">
-                </tbody>
-            </table>
-            </div>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Windy Model Viewer</h2>
-          <div class="controls">
-            <label for="overlay">Overlay:</label>
-            <select id="overlay">
-              <option value="snow">Snow</option>
-              <option value="rain">Rain</option>
-              <option value="temp">Temperature</option>
-              <option value="wind">Wind</option>
-            </select>
-            <label for="zoom">Zoom:</label>
-            <select id="zoom"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
-            <button id="loadWindy" type="button">Load Windy Map</button>
-          </div>
-          <iframe id="windy" title="Windy" loading="lazy" hidden></iframe>
-          <div class="links"><a id="openWindy" target="_blank" rel="noopener">Open in Windy ▸</a></div>
-        </section>
-      </div>
-
-      <section class="card" style="margin-top:16px" id="groundTruthCard" hidden>
-        <h2 id="snotelTitle">Conditions Report</h2>
-        <div id="snotelData"></div>
-        <div id="terrain" hidden></div>
-      </section>
-
-      <section class="card" style="margin-top:16px">
-        <h2>Reality-Checks</h2>
-        <div id="realLinks" class="links"></div>
-      </section>
+        <div id="nwsLinks" class="links raw-links">
+          <span class="muted">Raw NWS data:</span>
+          <a id="linkPoint" target="_blank" rel="noopener">Forecast</a> •
+          <a id="linkGrid" target="_blank" rel="noopener">Grid</a> •
+          <a id="linkHourly" target="_blank" rel="noopener">Hourly</a>
+        </div>
+      </details>
     </main>
 
     <script type="module" src="/src/app.js"></script>

@@ -1,10 +1,30 @@
 // src/ui.js
 
 // ---- element handles ----
+
+// The elevation picker is a group of radio buttons; this gives it the same
+// .value interface as a <select> so callers don't care which it is.
+function elevControl(group) {
+  return {
+    get value() {
+      return group.querySelector('input:checked')?.value || 'summit';
+    },
+    set value(v) {
+      const input = [...group.querySelectorAll('input')].find(
+        (i) => i.value === v
+      );
+      if (input) input.checked = true;
+    },
+    onChange(fn) {
+      group.addEventListener('change', fn);
+    },
+  };
+}
+
 export const els = {
   // controls
   spot: document.getElementById('spot'),
-  elev: document.getElementById('elev'),
+  elev: elevControl(document.getElementById('elev')),
   source: document.getElementById('source'),
   refresh: document.getElementById('refresh'),
   overlaySel: document.getElementById('overlay'),
@@ -17,12 +37,6 @@ export const els = {
   status: document.getElementById('status'),
   err: document.getElementById('error'),
 
-  // panes & tabs
-  tabForecast: document.getElementById('tabForecast'),
-  tabHourly: document.getElementById('tabHourly'),
-  paneForecast: document.getElementById('paneForecast'),
-  paneHourly: document.getElementById('paneHourly'),
-
   // forecast areas (period view)
   periods: document.getElementById('periods'),
 
@@ -31,17 +45,23 @@ export const els = {
   kpiGust: document.getElementById('kpiGust'),
   kpiPoP: document.getElementById('kpiPoP'),
 
-  // KPI (totals)
-  kpiSnow24: document.getElementById('kpiSnow24'),
-  kpiSnow72: document.getElementById('kpiSnow72'),
-  kpiQpf24: document.getElementById('kpiQpf24'),
+  // forecast comparison + verdict strip
+  forecastCompare: document.getElementById('forecastCompare'),
+  vFellLabel: document.getElementById('vFellLabel'),
+  vFell: document.getElementById('vFell'),
+  vFellSub: document.getElementById('vFellSub'),
+  vComing: document.getElementById('vComing'),
+  vComingSub: document.getElementById('vComingSub'),
+  vLifts: document.getElementById('vLifts'),
+  vLiftsSub: document.getElementById('vLiftsSub'),
+  vWind: document.getElementById('vWind'),
+  vWindSub: document.getElementById('vWindSub'),
 
   // links
   linkPoint: document.getElementById('linkPoint'),
   linkGrid: document.getElementById('linkGrid'),
   linkHourly: document.getElementById('linkHourly'),
   nwsLinks: document.getElementById('nwsLinks'),
-  hourlyLinks: document.getElementById('hourlyLinks'),
   realLinks: document.getElementById('realLinks'),
 
   // hourly table
@@ -62,9 +82,9 @@ export const els = {
 
   // SNOTEL / Ground Truth elements
   groundTruthCard: document.getElementById('groundTruthCard'),
-  snotelTitle: document.getElementById('snotelTitle'),
   snotelData: document.getElementById('snotelData'),
   terrain: document.getElementById('terrain'),
+  reportExtra: document.getElementById('reportExtra'),
 };
 
 // ---- escaping ----
@@ -107,27 +127,7 @@ export function clearForecast() {
 
 // ---- Toggles for NWS-specific UI ----
 export function showNwsLinks(visible) {
-  els.nwsLinks.style.display = visible ? 'block' : 'none';
-  els.hourlyLinks.style.display = visible ? 'block' : 'none';
-}
-
-// ---- tabs ----
-export function initTabs() {
-  if (!els.tabForecast || !els.tabHourly) return;
-
-  const activate = (which) => {
-    const isForecast = which === 'forecast';
-    els.tabForecast.classList.toggle('active', isForecast);
-    els.tabHourly.classList.toggle('active', !isForecast);
-    els.paneForecast.hidden = !isForecast;
-    els.paneHourly.hidden = isForecast;
-  };
-
-  els.tabForecast.addEventListener('click', () => activate('forecast'));
-  els.tabHourly.addEventListener('click', () => activate('hourly'));
-
-  // default to Forecast on load
-  activate('forecast');
+  els.nwsLinks.hidden = !visible;
 }
 
 // ---- dropdown + links ----
@@ -175,31 +175,148 @@ export function renderKPIs(firstPeriod, pop) {
   els.kpiPoP.textContent = pop != null ? `${Math.round(pop)}%` : '--';
 }
 
+// Day rows: one line each (name, short forecast, temperature); tap for the
+// full text. The first row starts open.
 export function renderPeriods(forecast) {
-  const periods = forecast?.properties?.periods || [];
+  const periods = (forecast?.properties?.periods || []).slice(0, 8);
+  if (!periods.length) {
+    els.periods.innerHTML =
+      '<p class="muted">The day-by-day text forecast comes from NWS and is not available from this source.</p>';
+    return;
+  }
   els.periods.innerHTML = periods
-    .slice(0, 8)
     .map(
-      (p) => `
-    <div class="period">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-        <strong>${esc(p.name)}</strong>
-        <span class="muted">${p.startTime ? esc(new Date(p.startTime).toLocaleString()) : ''}</span>
+      (p, i) => `
+    <details class="day"${i === 0 ? ' open' : ''}>
+      <summary>
+        <span class="day-name">${esc(p.name)}</span>
+        <span class="day-short">${esc(p.shortForecast || '')}</span>
+        <span class="day-temp">${p.temperature != null ? `${esc(p.temperature)}°` : ''}</span>
+      </summary>
+      <div class="day-body">
+        ${esc(p.detailedForecast || p.shortForecast || '')}
+        <div class="muted">Wind: ${esc(p.windSpeed)}${p.windGust ? ` (gust ${esc(p.windGust)})` : ''}</div>
       </div>
-      <div style="margin-top:6px">${esc(p.detailedForecast || p.shortForecast)}</div>
-      <div class="muted" style="margin-top:6px">
-        Wind: ${esc(p.windSpeed)}${p.windGust ? ` (gust ${esc(p.windGust)})` : ''}
-      </div>
-    </div>
-  `
+    </details>`
     )
     .join('');
 }
 
-export function renderTotals({ snow24, snow72, qpf24 }) {
-  els.kpiSnow24.textContent = snow24 != null ? `${snow24.toFixed(1)}"` : '--';
-  els.kpiSnow72.textContent = snow72 != null ? `${snow72.toFixed(1)}"` : '--';
-  els.kpiQpf24.textContent = qpf24 != null ? `${qpf24.toFixed(2)}"` : '--';
+// ---- snowfall amounts ----
+function inches(v, digits = 1) {
+  if (v == null || Number.isNaN(v)) return '--';
+  return v < 0.05 ? '0' : `${v.toFixed(digits)}"`;
+}
+
+// For the headline: whole inches once there is at least one
+function inchesShort(v) {
+  if (v < 0.25) return '0'; // a dusting isn't worth a headline range
+  return v < 1 ? v.toFixed(1) : String(Math.round(v));
+}
+
+/**
+ * Forecast snowfall from both models, side by side.
+ * @param {{nws: object|null, om: object|null, qpf24: number|null}} f
+ *   nws / om: { snow24, snow72, snow7d? } in inches
+ */
+export function renderForecastCompare({ nws, om, qpf24 }) {
+  const row = (label, t, note) => `
+    <tr>
+      <th scope="row">${label}${note ? `<span class="muted">${note}</span>` : ''}</th>
+      <td class="num">${inches(t?.snow24)}</td>
+      <td class="num">${inches(t?.snow72)}</td>
+      <td class="num">${inches(t?.snow7d)}</td>
+    </tr>`;
+
+  const notes = [];
+  if (nws?.snow72 != null && om?.snow72 != null) {
+    const gap = Math.abs(nws.snow72 - om.snow72);
+    if (gap >= 3) {
+      notes.push(
+        `The two forecasts differ by ${gap.toFixed(0)}" over 72 hours.`
+      );
+    }
+  }
+  if (qpf24 != null && qpf24 >= 0.005) {
+    notes.push(`Liquid equivalent, 24h (NWS): ${qpf24.toFixed(2)}"`);
+  }
+
+  els.forecastCompare.innerHTML = `
+    <table class="compare" aria-label="Forecast snowfall by source">
+      <thead>
+        <tr><th scope="col">Snowfall</th><th scope="col" class="num">24h</th><th scope="col" class="num">72h</th><th scope="col" class="num">7 days</th></tr>
+      </thead>
+      <tbody>
+        ${row('NWS', nws, nws ? '' : 'not loaded')}
+        ${row('Open-Meteo', om, om ? '' : 'loading')}
+      </tbody>
+    </table>
+    ${notes.length ? `<p class="muted compare-notes">${notes.map(esc).join(' · ')}</p>` : ''}`;
+}
+
+/**
+ * The four headline tiles under the resort name. Each fills in as its data
+ * arrives; anything missing shows "--".
+ */
+export function renderVerdict({
+  reported,
+  reportState,
+  terrain,
+  nws,
+  om,
+  gust24,
+  windHoldMph,
+}) {
+  // 1. What fell (reported by the resort) or, for SNOTEL, what is on the ground
+  const isSnotel = String(reported?.source || '').startsWith('SNOTEL');
+  if (reported && !isSnotel && reported.change24h != null) {
+    els.vFellLabel.textContent = 'New snow';
+    els.vFell.textContent = `${reported.change24h}"`;
+    els.vFellSub.textContent = 'reported, 24h';
+  } else if (reported?.depth != null) {
+    els.vFellLabel.textContent = 'Snow depth';
+    els.vFell.textContent = `${reported.depth}"`;
+    els.vFellSub.textContent = isSnotel ? 'SNOTEL station' : 'reported';
+  } else {
+    els.vFellLabel.textContent = 'New snow';
+    els.vFell.textContent = '--';
+    els.vFellSub.textContent =
+      reportState === 'loading' ? 'loading' : 'no report';
+  }
+
+  // 2. What is coming: the range across both forecasts
+  const next = [nws?.snow24, om?.snow24].filter((v) => v != null);
+  if (next.length) {
+    const lo = inchesShort(Math.min(...next));
+    const hi = inchesShort(Math.max(...next));
+    els.vComing.textContent = lo === hi ? `${lo}"` : `${lo}–${hi}"`;
+    els.vComingSub.textContent =
+      next.length === 2 ? 'forecast, 2 models' : 'forecast';
+  } else {
+    els.vComing.textContent = '--';
+    els.vComingSub.textContent = 'forecast';
+  }
+
+  // 3. Lifts
+  const s = terrain?.summary;
+  if (s?.liftsTotal != null) {
+    els.vLifts.textContent = `${s.liftsOpen ?? 0}/${s.liftsTotal}`;
+    els.vLiftsSub.textContent =
+      s.liftsHold > 0 ? `open · ${s.liftsHold} on hold` : 'open';
+    els.vLiftsSub.classList.toggle('warn', s.liftsHold > 0);
+  } else {
+    els.vLifts.textContent = '--';
+    els.vLiftsSub.textContent =
+      reportState === 'loading' ? 'loading' : 'not published';
+    els.vLiftsSub.classList.remove('warn');
+  }
+
+  // 4. Wind
+  const windy = gust24 != null && gust24 >= windHoldMph;
+  els.vWind.textContent = gust24 != null ? `${Math.round(gust24)} mph` : '--';
+  els.vWind.classList.toggle('warn', windy);
+  els.vWindSub.textContent = windy ? 'wind-hold risk' : 'max gust, 24h';
+  els.vWindSub.classList.toggle('warn', windy);
 }
 
 // ---- hourly view ----
@@ -258,18 +375,17 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
 
 /**
  * Renders the Ground Truth data card
- * @param {object|null} data - The normalized ground truth data from groundTruth.js
+ * @param {object|null|'loading'} data - normalized report from groundTruth.js
  */
 export function renderGroundTruth(data) {
-  if (!data) {
-    els.groundTruthCard.hidden = true;
-    els.snotelData.innerHTML = '';
+  if (!data || data === 'loading') {
+    els.reportExtra.innerHTML = '';
+    els.snotelData.innerHTML =
+      data === 'loading'
+        ? '<p class="muted empty">Loading the mountain report…</p>'
+        : '<p class="muted empty">This resort has no live on-mountain report. Use the Cams and Official links above.</p>';
     return;
   }
-
-  els.groundTruthCard.hidden = false;
-
-  els.snotelTitle.textContent = `Conditions Report`;
 
   // 1. Build KPIs (Grid)
   const kpis = [];
@@ -284,11 +400,11 @@ export function renderGroundTruth(data) {
     `);
   };
 
-  addKpi('Base Depth', data.depth, '"');
   // SNOTEL reports settled depth, so its day-over-day figure can be negative
   const isSnotel = String(data.source || '').startsWith('SNOTEL');
-  addKpi(isSnotel ? 'Depth Change 24h' : '24h Snow', data.change24h, '"');
-  addKpi('Season Total', data.seasonTotal, '"');
+  addKpi(isSnotel ? 'Depth change, 24h' : 'New snow, 24h', data.change24h, '"');
+  addKpi('Base depth', data.depth, '"');
+  addKpi('Season total', data.seasonTotal, '"');
 
   if (data.temp != null) {
     addKpi('Temp', data.temp, '°F');
@@ -323,9 +439,10 @@ export function renderGroundTruth(data) {
   // 4. Source
   const sourceHtml = `<div class="gt-source">Source: ${esc(data.source || 'Unknown')}</div>`;
 
-  // Assemble
-  els.snotelData.innerHTML = `
-    <div class="gt-grid">${kpis.join('')}</div>
+  // Numbers first, then lifts and trails (#terrain sits between these two
+  // containers), then the resort's own notes and write-up.
+  els.snotelData.innerHTML = `<div class="gt-grid">${kpis.join('')}</div>`;
+  els.reportExtra.innerHTML = `
     ${attrHtml}
     ${excerptHtml}
     ${sourceHtml}

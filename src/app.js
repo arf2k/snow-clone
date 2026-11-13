@@ -14,9 +14,9 @@ import {
   renderRealityLinks,
   renderKPIs,
   renderPeriods,
-  renderTotals,
+  renderForecastCompare,
+  renderVerdict,
   renderHourly,
-  initTabs,
   showNwsLinks,
   renderGroundTruth,
   renderTerrain,
@@ -46,6 +46,54 @@ const rankingCache = new Map(); // elevKey -> { at, rows }
 let rankingLoad = null; // AbortController for the ranking request in flight
 let rankingRows = [];
 let rankingSort = { key: 'snow72', dir: 'desc' };
+let rankingElev = null; // elevation band rankingRows was computed for
+
+// Everything the resort header and forecast table are built from. The
+// pieces arrive separately (report, lifts, NWS, Open-Meteo); drawSummary()
+// redraws from whatever has arrived so far.
+const detail = {
+  reported: null, // on-mountain report, or null
+  reportState: 'loading', // 'loading' | 'done'
+  terrain: null, // lifts and trails, or null
+  nws: null, // { snow24, snow72 } from the NWS grid
+  om: null, // Open-Meteo totals when it is the detail source
+  qpf24: null, // NWS liquid equivalent, inches
+};
+
+function resetDetail() {
+  Object.assign(detail, {
+    reported: null,
+    reportState: 'loading',
+    terrain: null,
+    nws: null,
+    om: null,
+    qpf24: null,
+  });
+}
+
+function drawSummary() {
+  // The ranking already holds Open-Meteo totals for every resort, so the
+  // second forecast costs no extra request (when it is for this elevation).
+  const row =
+    rankingElev === els.elev.value
+      ? rankingRows.find((r) => r.id === els.spot.value)
+      : null;
+  const fromRanking = row
+    ? { snow24: row.snow24, snow72: row.snow72, snow7d: row.snow7d }
+    : null;
+  const om = detail.om || fromRanking ? { ...fromRanking, ...detail.om } : null;
+
+  renderForecastCompare({ nws: detail.nws, om, qpf24: detail.qpf24 });
+  renderVerdict({
+    reported: detail.reported,
+    reportState: detail.reportState,
+    terrain: detail.terrain,
+    nws: detail.nws,
+    om,
+    gust24: row?.gust24 ?? null,
+    windHoldMph: WIND_HOLD_GUST_MPH,
+  });
+}
 
 /* ----------------------- saved selection ----------------------- */
 function loadPrefs() {
@@ -82,7 +130,8 @@ function applyPrefs() {
     if (exists) select.value = String(value);
   };
   restore(els.spot, prefs.spot);
-  restore(els.elev, prefs.elev);
+  if (['summit', 'mid', 'base'].includes(prefs.elev))
+    els.elev.value = prefs.elev;
   restore(els.source, prefs.source);
   restore(els.overlaySel, prefs.overlay);
   restore(els.zoomSel, prefs.zoom);
@@ -291,7 +340,6 @@ async function runNws(elev, { signal } = {}) {
   const firstPeriod = forecast?.properties?.periods?.[0];
   renderKPIs(firstPeriod, null);
   renderPeriods(forecast);
-  renderTotals({ snow24: null, snow72: null, qpf24: null });
 
   const warnings = [];
 
@@ -304,7 +352,10 @@ async function runNws(elev, { signal } = {}) {
       grid.value?.properties?.probabilityOfPrecipitation?.values
     );
     renderKPIs(firstPeriod, pop);
-    renderTotals(deriveTotalsFromNwsGrid(grid.value));
+    const totals = deriveTotalsFromNwsGrid(grid.value);
+    detail.nws = { snow24: totals.snow24, snow72: totals.snow72 };
+    detail.qpf24 = totals.qpf24;
+    drawSummary();
   }
 
   const hourly = await hourlyResult;
@@ -333,9 +384,12 @@ async function runOpenMeteo(elev, { signal } = {}) {
 
   showNwsLinks(false);
   clearForecast();
+  renderPeriods(null); // explains that day-by-day text is NWS only
   const { firstPeriod, pop } = adaptOmToKpis(omJson);
   renderKPIs(firstPeriod, pop);
-  renderTotals(adaptOmToTotals(omJson));
+  const totals = adaptOmToTotals(omJson);
+  detail.om = { snow24: totals.snow24, snow72: totals.snow72 };
+  drawSummary();
   renderHourly(adaptOmToHourly(omJson), { limitHours: 36 });
   return [];
 }
@@ -403,29 +457,34 @@ async function updateGroundTruthCard(resort, signal) {
   try {
     data = await fetchGroundTruth(resort, { signal });
     if (signal.aborted) return;
-    renderGroundTruth(data); // ui.js handles null
   } catch (e) {
     if (signal.aborted) return;
     console.warn('Ground Truth fetch failed:', e);
-    renderGroundTruth(null); // Hide card on any error
   }
+  detail.reported = data;
+  detail.reportState = 'done';
+  renderGroundTruth(data); // null shows the "no report" message
 
   // Lifts and trails: usually part of the report; some feeds need a
   // second request, which must not hold up or break the report above.
   if (!data?.loadTerrain) {
-    renderTerrain(data?.terrain ?? null);
+    detail.terrain = data?.terrain ?? null;
+    renderTerrain(detail.terrain);
+    drawSummary();
     return;
   }
+  drawSummary();
   renderTerrain('loading');
   try {
     const terrain = await data.loadTerrain({ signal });
     if (signal.aborted) return;
-    renderTerrain(terrain);
+    detail.terrain = terrain;
   } catch (e) {
     if (signal.aborted) return;
     console.warn('Lift/trail fetch failed:', e);
-    renderTerrain(null);
   }
+  renderTerrain(detail.terrain);
+  drawSummary();
 }
 
 async function run() {
@@ -464,8 +523,11 @@ async function run() {
   // Links only depend on the selection; no need to wait for the network
   updateWindyTargets(elev);
   renderRealityLinks(r);
-  renderGroundTruth(null); // don't leave the previous resort's report up
+  // Don't leave the previous resort's numbers up while the new ones load
+  resetDetail();
+  renderGroundTruth('loading');
   renderTerrain(null);
+  drawSummary();
 
   const groundTruthDone = updateGroundTruthCard(r, signal);
 
@@ -530,6 +592,7 @@ function drawRanking() {
     selectedId: els.spot.value,
     windHoldMph: WIND_HOLD_GUST_MPH,
   });
+  drawSummary(); // the resort header uses the ranking's Open-Meteo numbers
 }
 
 async function loadRanking({ force = false } = {}) {
@@ -539,6 +602,7 @@ async function loadRanking({ force = false } = {}) {
   const cached = rankingCache.get(elevKey);
   if (!force && cached && Date.now() - cached.at < RANKING_TTL_MS) {
     rankingRows = cached.rows;
+    rankingElev = elevKey;
     setRankingStatus(`Updated ${new Date(cached.at).toLocaleTimeString()}`);
     drawRanking();
     return;
@@ -559,6 +623,7 @@ async function loadRanking({ force = false } = {}) {
     const at = Date.now();
     rankingCache.set(elevKey, { at, rows });
     rankingRows = rows;
+    rankingElev = elevKey;
     setRankingStatus(`Updated ${new Date(at).toLocaleTimeString()}`);
     drawRanking();
   } catch (e) {
@@ -598,7 +663,7 @@ els.spot.addEventListener('change', () => {
   run();
   drawRanking(); // move the row highlight
 });
-els.elev.addEventListener('change', () => {
+els.elev.onChange(() => {
   run();
   loadRanking();
 });
@@ -649,7 +714,6 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 /* --------------------------- boot -------------------------------- */
 async function boot() {
-  initTabs();
   await loadResorts();
   if (!RESORTS.length) return;
   loadRanking();
