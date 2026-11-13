@@ -6,18 +6,36 @@ import { fetchMtnPowderData } from './mtnpowder.js';
  * Map unique domains to their local proxy paths.
  */
 const PROXY_MAP = {
-  'api.killington.com':           '/api/killington',      
-  'api.coppercolorado.com':       '/api/copper',          
-  'jacksonhole-prod.zaneray.com': '/api/jacksonhole',     
-  'www.sugarloaf.com':            '/api/sugarloaf',       
-  'api.snowbird.com':             '/api/snowbird',
-  'brightonresort.com':           '/api/brighton', 
-  'loonmtn.com':               '/api/loon',
-  'sundayriver.com':           '/api/sundayriver',
-  'bigskyresort.com':          '/api/bigsky',
-  'api.mtbachelor.com':          '/api/mtbachelor',
-  'api.eldora.com':              '/api/eldora'
+  'api.killington.com': '/api/killington',
+  'api.coppercolorado.com': '/api/copper',
+  'jacksonhole-prod.zaneray.com': '/api/jacksonhole',
+  'sugarloaf.com': '/api/sugarloaf',
+  'api.snowbird.com': '/api/snowbird',
+  'brightonresort.com': '/api/brighton',
+  'loonmtn.com': '/api/loon',
+  'sundayriver.com': '/api/sundayriver',
+  'bigskyresort.com': '/api/bigsky',
+  'api.mtbachelor.com': '/api/mtbachelor',
+  'api.eldora.com': '/api/eldora',
 };
+
+/**
+ * Rewrite an upstream URL to its local proxy path. Every proxy just strips
+ * its /api/<name> prefix, so the upstream path and query are kept as-is.
+ * Returns null when there is no proxy for the host (a direct browser fetch
+ * would fail on CORS anyway).
+ */
+function toProxyUrl(originalUrl) {
+  let u;
+  try {
+    u = new URL(originalUrl);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\./, '');
+  const proxyPath = PROXY_MAP[host];
+  return proxyPath ? `${proxyPath}${u.pathname}${u.search}` : null;
+}
 
 /**
  * ---------------- HELPERS ----------------
@@ -52,13 +70,26 @@ function parseJacksonHole(data) {
   const summit = snow.tramSummit || {};
   const wSummit = weather.tramSummit || {};
   const wBase = weather.base || {};
-  
-  const temp = toNumberOrNull(wSummit.temperature?.value) ?? toNumberOrNull(wBase.temperature?.value);
+
+  const temp =
+    toNumberOrNull(wSummit.temperature?.value) ??
+    toNumberOrNull(wBase.temperature?.value);
 
   const attributes = [
-    attr('Wind (Summit)', wSummit.wind?.value ? `${wSummit.wind.value} ${wSummit.wind.unitSymbol || 'mph'}` : null, Number(wSummit.wind?.value) > 30 ? 'warning' : 'info'),
-    attr('Wind (Base)', wBase.wind?.value ? `${wBase.wind.value} ${wBase.wind.unitSymbol || 'mph'}` : null),
-    attr('Inversion', snow.inversion ? 'Detected' : null, 'warning')
+    attr(
+      'Wind (Summit)',
+      wSummit.wind?.value
+        ? `${wSummit.wind.value} ${wSummit.wind.unitSymbol || 'mph'}`
+        : null,
+      Number(wSummit.wind?.value) > 30 ? 'warning' : 'info'
+    ),
+    attr(
+      'Wind (Base)',
+      wBase.wind?.value
+        ? `${wBase.wind.value} ${wBase.wind.unitSymbol || 'mph'}`
+        : null
+    ),
+    attr('Inversion', snow.inversion ? 'Detected' : null, 'warning'),
   ];
 
   return {
@@ -66,13 +97,13 @@ function parseJacksonHole(data) {
     depth: toNumberOrNull(summit.totalSnowDepth?.value),
     change24h: toNumberOrNull(summit.newSnowLast24H?.value),
     seasonTotal: toNumberOrNull(summit.seasonTotalSnow?.value),
-    openLifts: null, 
+    openLifts: null,
     totalLifts: null,
     openTrails: null,
     totalTrails: null,
     temp,
     attributes: attributes.filter(Boolean),
-    excerpt: snow.detail || snow.inversionMessage || ''
+    excerpt: snow.detail || snow.inversionMessage || '',
   };
 }
 
@@ -83,27 +114,46 @@ function parseReportPal(data) {
   const comments = data?.comments?.comment || [];
 
   const attributes = [];
-  
+
   // Uphill Status
-  const uphillComment = comments.find(c => 
-    (c.title && c.title.toLowerCase().includes('uphill')) || 
-    (c.text && c.text.toLowerCase().includes('uphill'))
+  const uphillComment = comments.find(
+    (c) =>
+      (c.title && c.title.toLowerCase().includes('uphill')) ||
+      (c.text && c.text.toLowerCase().includes('uphill'))
   );
   if (uphillComment) {
     const text = (uphillComment.text || '').toLowerCase();
-    const isClosed = text.includes('not allowed') || text.includes('closed') || text.includes('red');
-    attributes.push(attr('Uphill Travel', isClosed ? 'Closed' : 'Open', isClosed ? 'error' : 'success'));
+    const isClosed =
+      text.includes('not allowed') ||
+      text.includes('closed') ||
+      text.includes('red');
+    attributes.push(
+      attr(
+        'Uphill Travel',
+        isClosed ? 'Closed' : 'Open',
+        isClosed ? 'error' : 'success'
+      )
+    );
   }
 
   // Road Status
-  const roadComment = comments.find(c => c.name === 'Road' || (c.title && c.title.toLowerCase().includes('road')));
+  const roadComment = comments.find(
+    (c) =>
+      c.name === 'Road' || (c.title && c.title.toLowerCase().includes('road'))
+  );
   if (roadComment) {
     const text = stripHtml(roadComment.text || roadComment.title);
-    const type = text.toLowerCase().includes('traction') || text.toLowerCase().includes('closed') ? 'warning' : 'info';
+    const type =
+      text.toLowerCase().includes('traction') ||
+      text.toLowerCase().includes('closed')
+        ? 'warning'
+        : 'info';
     attributes.push(attr('Roads', text, type));
   }
 
-  const mainComment = comments.find(c => c.name === 'Comment' || c.name === 'Weather');
+  const mainComment = comments.find(
+    (c) => c.name === 'Comment' || c.name === 'Weather'
+  );
 
   return {
     source: 'Direct (ReportPal)',
@@ -116,14 +166,14 @@ function parseReportPal(data) {
     totalTrails: toNumberOrNull(resortwide.numTrailsTotal),
     temp: null,
     attributes: attributes.filter(Boolean),
-    excerpt: mainComment ? stripHtml(mainComment.text) : ''
+    excerpt: mainComment ? stripHtml(mainComment.text) : '',
   };
 }
 
 /* Killington / Copper / Snowbird (Drupal Array) */
 function parseDrupal(data) {
   if (!Array.isArray(data) || data.length === 0) return null;
-  const report = data[0]; 
+  const report = data[0];
   const computed = report.computed || {};
 
   const attributes = [];
@@ -137,15 +187,17 @@ function parseDrupal(data) {
   return {
     source: 'Direct (Drupal)',
     depth: toNumberOrNull(report.base_depth),
-    change24h: toNumberOrNull(computed['24_hour']) ?? toNumberOrNull(report.amount),
-    seasonTotal: toNumberOrNull(computed.total) ?? toNumberOrNull(computed.season_total),
+    change24h:
+      toNumberOrNull(computed['24_hour']) ?? toNumberOrNull(report.amount),
+    seasonTotal:
+      toNumberOrNull(computed.total) ?? toNumberOrNull(computed.season_total),
     openLifts: null,
     totalLifts: null,
     openTrails: null,
     totalTrails: null,
     temp: null,
     attributes: attributes.filter(Boolean),
-    excerpt
+    excerpt,
   };
 }
 
@@ -160,9 +212,18 @@ function parseMtnPowder(raw) {
   if (!report) return null;
 
   const attributes = [
-    attr('Snowmaking', report.SnowMakingActive === 'true' ? 'Active' : 'Inactive', report.SnowMakingActive === 'true' ? 'success' : 'info'),
+    attr(
+      'Snowmaking',
+      report.SnowMakingActive === 'true' ? 'Active' : 'Inactive',
+      report.SnowMakingActive === 'true' ? 'success' : 'info'
+    ),
     attr('Grooming', report.GroomingActive === 'true' ? 'Yes' : 'No'),
-    attr('Acres Open', report.OpenTerrainAcres && report.OpenTerrainAcres !== '0' ? report.OpenTerrainAcres : null)
+    attr(
+      'Acres Open',
+      report.OpenTerrainAcres && report.OpenTerrainAcres !== '0'
+        ? report.OpenTerrainAcres
+        : null
+    ),
   ];
 
   let excerpt = stripHtml(report.Report);
@@ -170,8 +231,12 @@ function parseMtnPowder(raw) {
 
   return {
     source: 'MtnPowder',
-    depth: toNumberOrNull(report.SummitArea?.BaseIn) ?? toNumberOrNull(report.BaseArea?.BaseIn),
-    change24h: toNumberOrNull(report.AllMountain?.Last24HoursIn) ?? toNumberOrNull(report.SummitArea?.Last24HoursIn),
+    depth:
+      toNumberOrNull(report.SummitArea?.BaseIn) ??
+      toNumberOrNull(report.BaseArea?.BaseIn),
+    change24h:
+      toNumberOrNull(report.AllMountain?.Last24HoursIn) ??
+      toNumberOrNull(report.SummitArea?.Last24HoursIn),
     seasonTotal: toNumberOrNull(report.SeasonTotalIn),
     openLifts: toNumberOrNull(report.TotalOpenLifts),
     totalLifts: toNumberOrNull(report.TotalLifts),
@@ -179,89 +244,67 @@ function parseMtnPowder(raw) {
     totalTrails: toNumberOrNull(report.TotalTrails),
     temp: null,
     attributes: attributes.filter(Boolean),
-    excerpt
+    excerpt,
   };
 }
 
 /**
  * ---------------- MAIN FETCH ----------------
+ * Sources are tried in priority order. Each one is isolated, so a failure
+ * (network error, bad status, unparseable body) falls through to the next.
  */
-export async function fetchGroundTruth(resort) {
-  if (!resort || !resort.links) return null;
+async function fromDirectApi(resort, signal) {
+  const originalUrl = resort.links.directApi;
+  const fetchUrl = toProxyUrl(originalUrl);
+  if (!fetchUrl) throw new Error(`No proxy configured for ${originalUrl}`);
 
-  try {
-    // 1. Try Direct API (Highest Priority)
-    if (resort.links.directApi) {
-      const originalUrl = resort.links.directApi;
-      let fetchUrl = originalUrl;
+  const r = await fetch(fetchUrl, { signal });
+  if (!r.ok) throw new Error(`Direct API error (${r.status}): ${fetchUrl}`);
+  const json = await r.json();
 
-      // Iterate through our Proxy Map
-      for (const [domain, proxyPath] of Object.entries(PROXY_MAP)) {
-        // Check if the URL contains the domain (e.g. "brightonresort.com")
-        if (originalUrl.includes(domain)) {
-          
-          // SPECIAL CASE: Drupal/Killington (Requires stripping a specific path prefix)
-          if (domain.includes('killington') || domain.includes('copper') || domain.includes('snowbird')) {
-             // Replace the specific Drupal base path with the proxy
-             fetchUrl = originalUrl.replace(`https://${domain}/api/v1/dor/drupal`, proxyPath);
-             // Handle cases where 'www' might cause a mismatch manually
-             if (fetchUrl === originalUrl) {
-                fetchUrl = originalUrl.replace(`https://www.${domain}/api/v1/dor/drupal`, proxyPath);
-             }
-          } 
-          // STANDARD CASE: Simple Domain Swap (Brighton, Jackson Hole, etc.)
-          else {
-             try {
-               // Use the URL object to cleanly swap the Origin
-               const u = new URL(originalUrl);
-               // Construct: /api/brighton + /api/reportpal?resortName=br...
-               fetchUrl = `${proxyPath}${u.pathname}${u.search}`;
-             } catch (e) {
-               // Fallback if URL parsing fails
-               console.error('URL parse failed', e);
-             }
-          }
-          break; // Stop checking once we match
-        }
-      }
-
-      // Debug log to confirm the rewrite happened
-      if (originalUrl.includes('brighton')) {
-        console.log(`[Brighton Debug] Rewrote ${originalUrl} -> ${fetchUrl}`);
-      }
-
-      const r = await fetch(fetchUrl);
-      if (r.ok) {
-        const json = await r.json();
-
-        // Select Parser
-        if (resort.groundTruthConfig?.schema === 'multi-zone-snow' || originalUrl.includes('jacksonhole')) {
-          return parseJacksonHole(json);
-        } else if (originalUrl.includes('reportpal')) {
-          return parseReportPal(json);
-        } else if (Array.isArray(json)) {
-          return parseDrupal(json);
-        }
-      } else {
-        console.warn(`Direct API error (${r.status}) for ${resort.name}:`, fetchUrl);
-      }
-    }
-
-    // 2. Try MtnPowder (Medium Priority)
-    if (resort.links.mtnpowder_id != null) {
-      const data = await fetchMtnPowderData(resort.links.mtnpowder_id);
-      const parsed = parseMtnPowder(data);
-      if (parsed) return parsed;
-    }
-
-    // 3. Fallback to SNOTEL (Lowest Priority)
-    if (resort.links.snotel) {
-      return await fetchSnotelData(resort.links.snotel);
-    }
-
-  } catch (e) {
-    console.warn('Ground Truth fetch error:', e);
+  if (
+    resort.groundTruthConfig?.schema === 'multi-zone-snow' ||
+    originalUrl.includes('jacksonhole')
+  ) {
+    return parseJacksonHole(json);
   }
-  
+  if (originalUrl.includes('reportpal')) return parseReportPal(json);
+  if (Array.isArray(json)) return parseDrupal(json);
+  return null;
+}
+
+export async function fetchGroundTruth(resort, { signal } = {}) {
+  const links = resort?.links;
+  if (!links) return null;
+
+  const sources = [];
+  if (links.directApi) {
+    sources.push(['direct', () => fromDirectApi(resort, signal)]);
+  }
+  if (links.mtnpowder_id != null) {
+    sources.push([
+      'mtnpowder',
+      async () =>
+        parseMtnPowder(
+          await fetchMtnPowderData(links.mtnpowder_id, { signal })
+        ),
+    ]);
+  }
+  if (links.snotel) {
+    sources.push(['snotel', () => fetchSnotelData(links.snotel, { signal })]);
+  }
+
+  for (const [name, load] of sources) {
+    try {
+      const data = await load();
+      if (data) return data;
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      console.warn(
+        `Ground truth source "${name}" failed for ${resort.name}:`,
+        e
+      );
+    }
+  }
   return null;
 }

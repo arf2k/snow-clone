@@ -19,21 +19,24 @@ button { cursor:pointer; }
 iframe { width:100%; height:520px; border:0; border-radius:12px; }
 .links a { color:var(--accent); text-decoration:none; }
 .links a:hover { text-decoration:underline; }
-/* ---- Ground Truth Card Updates ---- */
+.period { background:#0b1220; border:1px solid #1f2937; border-radius:10px; padding:10px 12px; font-size:14px; line-height:1.45; }
+h2 { margin:0 0 4px; font-size:16px; }
+
+/* ---- Ground Truth Card ---- */
 
 /* The Grid for Primary Stats (Depth, 24h, etc) */
 .gt-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 /* The List for Extended Attributes (Roads, Wind, etc) */
 .gt-attributes {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #1f2937;
   font-size: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -43,31 +46,33 @@ iframe { width:100%; height:520px; border:0; border-radius:12px; }
 .attr-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 12px;
 }
 
 .attr-label {
-  color: #666;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
-/* Dynamic Colors for Statuses */
-.attr-value { font-weight: 600; color: #333; }
-.attr-value.success { color: #27ae60; } /* Green */
-.attr-value.warning { color: #d35400; } /* Orange/Dark Yellow */
-.attr-value.error { color: #c0392b; }   /* Red */
-.attr-value.info { color: #2980b9; }    /* Blue */
+/* Dynamic Colors for Statuses (tuned for the dark card) */
+.attr-value { font-weight: 600; color: var(--ink); text-align: right; }
+.attr-value.success { color: #4ade80; }
+.attr-value.warning { color: #fbbf24; }
+.attr-value.error { color: #f87171; }
+.attr-value.info { color: var(--ink); }
 
 /* The Reporter's "Blog Post" Excerpt */
 .gt-excerpt {
   margin-top: 12px;
   font-style: italic;
-  color: #555;
+  color: #cbd5e1;
   font-size: 0.85rem;
-  background: #f8f9fa;
-  padding: 10px;
+  background: #0b1220;
+  padding: 10px 12px;
   border-radius: 6px;
-  border-left: 3px solid #ccc;
-  line-height: 1.4;
+  border-left: 3px solid #334155;
+  line-height: 1.45;
 }
 
 /* Footer Source Label */
@@ -75,7 +80,7 @@ iframe { width:100%; height:520px; border:0; border-radius:12px; }
   margin-top: 8px;
   text-align: right;
   font-size: 0.7rem;
-  color: #aaa;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

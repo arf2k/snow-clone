@@ -1,4 +1,4 @@
-import '../styles/main.css'; 
+import '../styles/main.css';
 import { RESORTS_JSON_URL, DEFAULT_OVERLAY, DEFAULT_ZOOM } from './config.js';
 import {
   els,
@@ -13,28 +13,61 @@ import {
   renderHourly,
   initTabs,
   showNwsLinks,
-  renderGroundTruth, 
+  renderGroundTruth,
 } from './ui.js';
 import { getNwsEndpoints, fetchForecast, fetchGrid } from './nws.js';
 import { buildWindyUrls } from './windy.js';
 import { fetchOpenMeteo } from './openmeteo.js';
-import { fetchGroundTruth } from './groundTruth.js'; 
+import { fetchGroundTruth } from './groundTruth.js';
 
 let RESORTS = [];
-const WEATHER_TIMEOUT_MS = 8000;
+// One budget per provider attempt. NWS needs a /points lookup followed by
+// three more requests and is often slow, so this is deliberately generous.
+const WEATHER_TIMEOUT_MS = 20000;
+const PREFS_KEY = 'snowchase:prefs';
+const HOUR_MS = 3600000;
 let windyLoaded = false;
 let pendingWindySrc = '';
+let activeRun = null; // AbortController for the run currently on screen
 
-function createTimeoutController(label, ms = WEATHER_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const id = setTimeout(
-    () => controller.abort(new Error(`${label} timed out after ${ms}ms`)),
-    ms
-  );
-  return {
-    signal: controller.signal,
-    cancel: () => clearTimeout(id),
+/* ----------------------- saved selection ----------------------- */
+function loadPrefs() {
+  try {
+    return JSON.parse(localStorage.getItem(PREFS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function savePrefs() {
+  try {
+    localStorage.setItem(
+      PREFS_KEY,
+      JSON.stringify({
+        spot: els.spot.value,
+        elev: els.elev.value,
+        source: els.source.value,
+        overlay: els.overlaySel.value,
+        zoom: els.zoomSel.value,
+      })
+    );
+  } catch {
+    // storage unavailable (private mode etc.) — the app works without it
+  }
+}
+
+function applyPrefs() {
+  const prefs = loadPrefs();
+  const restore = (select, value) => {
+    if (value == null) return;
+    const exists = [...select.options].some((o) => o.value === String(value));
+    if (exists) select.value = String(value);
   };
+  restore(els.spot, prefs.spot);
+  restore(els.elev, prefs.elev);
+  restore(els.source, prefs.source);
+  restore(els.overlaySel, prefs.overlay);
+  restore(els.zoomSel, prefs.zoom);
 }
 
 /* ----------------------- NWS helpers ----------------------- */
@@ -42,50 +75,82 @@ function inchesFromMm(mm) {
   return (mm ?? 0) / 25.4;
 }
 
-function accumulateNwsTimeSeries(values, hours) {
+// ISO-8601 duration as used by NWS validTime, e.g. PT6H, P1DT6H, PT30M
+function durationMs(iso) {
+  const m = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?$/.exec(iso || '');
+  if (!m) return HOUR_MS;
+  const [, d = 0, h = 0, min = 0] = m;
+  return (Number(d) * 24 + Number(h)) * HOUR_MS + Number(min) * 60000;
+}
+
+function parseValidTime(validTime) {
+  const [startStr, durStr] = String(validTime || '').split('/');
+  const start = Date.parse(startStr);
+  if (Number.isNaN(start)) return null;
+  return { start, end: start + durationMs(durStr) };
+}
+
+/**
+ * Sum an NWS grid accumulation series over the next `hours` hours.
+ * Each entry covers an interval; it is counted in proportion to how much of
+ * that interval overlaps the window, so the period in progress right now and
+ * the one straddling the end of the window are both included fairly.
+ */
+function accumulateNwsTimeSeries(values, hours, now = Date.now()) {
   if (!Array.isArray(values)) return 0;
-  const now = Date.now();
+  const windowEnd = now + hours * HOUR_MS;
   let sum = 0;
   for (const v of values) {
-    if (v?.value == null || !v.validTime) continue;
-    const [startStr] = v.validTime.split('/');
-    const start = Date.parse(startStr);
-    if (Number.isNaN(start)) continue;
-    const dtHours = (start - now) / 3600000;
-    if (dtHours >= 0 && dtHours < hours) sum += v.value;
+    if (v?.value == null) continue;
+    const t = parseValidTime(v.validTime);
+    if (!t || t.end <= t.start) continue;
+    const overlap = Math.min(t.end, windowEnd) - Math.max(t.start, now);
+    if (overlap > 0) sum += v.value * (overlap / (t.end - t.start));
   }
   return sum;
 }
 
+// Value of an NWS grid series for the interval containing `now`
+// (falling back to the next upcoming one).
+function currentNwsValue(values, now = Date.now()) {
+  if (!Array.isArray(values)) return null;
+  let next = null;
+  for (const v of values) {
+    if (v?.value == null) continue;
+    const t = parseValidTime(v.validTime);
+    if (!t) continue;
+    if (t.start <= now && now < t.end) return v.value;
+    if (t.start > now && (!next || t.start < next.start))
+      next = { start: t.start, value: v.value };
+  }
+  return next ? next.value : null;
+}
+
 function deriveTotalsFromNwsGrid(gdJson) {
   const props = gdJson?.properties || {};
-  const qpfMm24 = accumulateNwsTimeSeries(
-    props?.quantitativePrecipitation?.values,
-    24
-  );
-  const qpfIn24 = inchesFromMm(qpfMm24);
-  const hasSnow = Array.isArray(props?.snowfallAmount?.values);
-  let snowIn24, snowIn72;
-  if (hasSnow) {
-    const snowMm24 = accumulateNwsTimeSeries(props.snowfallAmount.values, 24);
-    const snowMm72 = accumulateNwsTimeSeries(props.snowfallAmount.values, 72);
-    snowIn24 = inchesFromMm(snowMm24);
-    snowIn72 = inchesFromMm(snowMm72);
-  } else {
-    const qpfMm72 = accumulateNwsTimeSeries(
-      props?.quantitativePrecipitation?.values,
-      72
-    );
-    snowIn24 = qpfIn24 * 12;
-    snowIn72 = inchesFromMm(qpfMm72) * 12;
+  const qpf = props?.quantitativePrecipitation?.values;
+  const snow = props?.snowfallAmount?.values;
+  const qpfIn24 = inchesFromMm(accumulateNwsTimeSeries(qpf, 24));
+  if (Array.isArray(snow)) {
+    return {
+      snow24: inchesFromMm(accumulateNwsTimeSeries(snow, 24)),
+      snow72: inchesFromMm(accumulateNwsTimeSeries(snow, 72)),
+      qpf24: qpfIn24,
+    };
   }
-  return { snow24: snowIn24, snow72: snowIn72, qpf24: qpfIn24 };
+  // No snowfall series: rough 12:1 estimate from liquid precipitation
+  return {
+    snow24: qpfIn24 * 12,
+    snow72: inchesFromMm(accumulateNwsTimeSeries(qpf, 72)) * 12,
+    qpf24: qpfIn24,
+  };
 }
 
 /* -------------------- Open-Meteo Adapters ------------------- */
-function getOmCurrentHourIndex(hourly) {
-  const now = Date.now();
-  const idx = hourly.time.findIndex((t) => Date.parse(t) > now);
+// hourly.time is unix seconds (see openmeteo.js)
+function getOmCurrentHourIndex(hourly, now = Date.now()) {
+  const idx = hourly.time.findIndex((t) => t * 1000 > now);
+  if (idx === -1) return hourly.time.length - 1;
   return idx > 0 ? idx - 1 : 0;
 }
 
@@ -93,33 +158,26 @@ function adaptOmToKpis(omJson) {
   const i = getOmCurrentHourIndex(omJson.hourly);
   const temp = omJson.hourly.temperature_2m[i];
   const gust = omJson.hourly.wind_gusts_10m[i];
-  const pop = omJson.hourly.precipitation_probability[i];
   const firstPeriod = {
     temperature: Math.round(temp),
     temperatureUnit: omJson.hourly_units.temperature_2m.replace('°', ''),
     windGust: `${Math.round(gust)} ${omJson.hourly_units.wind_gusts_10m}`,
   };
-  const grid = {
-    properties: {
-      probabilityOfPrecipitation: {
-        values: [{ value: pop }],
-      },
-    },
-  };
-  return { firstPeriod, grid };
+  return { firstPeriod, pop: omJson.hourly.precipitation_probability[i] };
 }
 
+// Rolling totals for the next 24h/72h, same window as the NWS numbers.
+// Each hourly value is the accumulation over the hour *ending* at its
+// timestamp, so the window starts with the hour after the current one.
 function adaptOmToTotals(omJson) {
-  const snowCm24 = omJson.daily.snowfall_sum[0] || 0;
-  const snowCm72 =
-    (omJson.daily.snowfall_sum[0] || 0) +
-    (omJson.daily.snowfall_sum[1] || 0) +
-    (omJson.daily.snowfall_sum[2] || 0);
-  const qpfMm24 = omJson.daily.precipitation_sum[0] || 0;
+  const { snowfall, precipitation } = omJson.hourly;
+  const start = getOmCurrentHourIndex(omJson.hourly) + 1;
+  const sum = (series, hours) =>
+    series.slice(start, start + hours).reduce((acc, v) => acc + (v || 0), 0);
   return {
-    snow24: snowCm24 / 2.54,
-    snow72: snowCm72 / 2.54,
-    qpf24: qpfMm24 / 25.4,
+    snow24: sum(snowfall, 24) / 2.54, // cm -> in
+    snow72: sum(snowfall, 72) / 2.54,
+    qpf24: sum(precipitation, 24) / 25.4, // mm -> in
   };
 }
 
@@ -137,9 +195,9 @@ function adaptOmToHourly(omJson) {
     wind_gusts_10m: gustUnit,
   } = omJson.hourly_units;
   const periods = [];
-  for (let i = 0; i < time.length; i++) {
+  for (let i = getOmCurrentHourIndex(omJson.hourly); i < time.length; i++) {
     periods.push({
-      startTime: time[i],
+      startTime: new Date(time[i] * 1000).toISOString(),
       temperature: Math.round(temperature_2m[i]),
       temperatureUnit: tempUnit.replace('°', ''),
       probabilityOfPrecipitation: precipitation_probability[i],
@@ -176,6 +234,7 @@ async function loadResorts() {
       );
     renderResortOptions(RESORTS);
     els.spot.value = RESORTS[0].id;
+    applyPrefs();
     setStatus('Resorts loaded ✓');
     els.refresh.disabled = false;
   } catch (e) {
@@ -188,108 +247,127 @@ async function loadResorts() {
 }
 
 /* ------------------------- run() functions ------------------------ */
+// Each returns a list of warnings for parts that could not be loaded.
+// `signal` aborts on timeout or when a newer run supersedes this one;
+// throwIfAborted() after every await keeps stale data off the screen.
 async function runNws(elev, { signal } = {}) {
   setStatus('Fetching NWS…');
-  showNwsLinks(true);
   const ep = await getNwsEndpoints(elev.lat, elev.lon, { signal });
 
   const forecastPromise = fetchForecast(ep.forecastUrl, { signal });
-  const gridPromise = fetchGrid(ep.gridUrl, { signal });
-  const hourlyPromise = fetchForecast(ep.hourlyUrl, { signal });
+  // Attach handlers now so a rejection is never reported as unhandled
+  const gridResult = fetchGrid(ep.gridUrl, { signal }).then(
+    (value) => ({ value }),
+    (error) => ({ error })
+  );
+  const hourlyResult = fetchForecast(ep.hourlyUrl, { signal }).then(
+    (value) => ({ value }),
+    (error) => ({ error })
+  );
 
+  // The text forecast is the one required piece: if it fails, the whole
+  // provider fails and the caller falls back.
+  const forecast = await forecastPromise;
+  signal?.throwIfAborted();
+
+  showNwsLinks(true);
   els.linkPoint.href = ep.forecastUrl;
   els.linkGrid.href = ep.gridUrl;
   els.linkHourly.href = ep.hourlyUrl;
 
-  const errors = [];
-
-  const forecast = await forecastPromise;
-  renderKPIs(forecast?.properties?.periods?.[0]);
+  const firstPeriod = forecast?.properties?.periods?.[0];
+  renderKPIs(firstPeriod, null);
   renderPeriods(forecast);
   renderTotals({ snow24: null, snow72: null, qpf24: null });
 
-  try {
-    const grid = await gridPromise;
-    renderKPIs(forecast?.properties?.periods?.[0], grid);
-    const totals = deriveTotalsFromNwsGrid(grid);
-    renderTotals(totals);
-  } catch (e) {
-    errors.push(`grid: ${e.message}`);
+  const warnings = [];
+
+  const grid = await gridResult;
+  signal?.throwIfAborted();
+  if (grid.error) {
+    warnings.push('snow totals unavailable');
+  } else {
+    const pop = currentNwsValue(
+      grid.value?.properties?.probabilityOfPrecipitation?.values
+    );
+    renderKPIs(firstPeriod, pop);
+    renderTotals(deriveTotalsFromNwsGrid(grid.value));
   }
 
-  try {
-    const hourly = await hourlyPromise;
-    renderHourly(hourly, { limitHours: 36 });
-  } catch (e) {
-    errors.push(`hourly: ${e.message}`);
+  const hourly = await hourlyResult;
+  signal?.throwIfAborted();
+  if (hourly.error) {
+    warnings.push('hourly unavailable');
+    renderHourly(null);
+  } else {
+    renderHourly(hourly.value, { limitHours: 36 });
   }
 
-  if (errors.length) {
-    const err = new Error(errors.join('; '));
-    err.partial = true;
-    throw err;
-  }
+  return warnings;
 }
 
 async function runOpenMeteo(elev, { signal } = {}) {
   setStatus('Fetching Open-Meteo…');
+  const omJson = await fetchOpenMeteo(
+    {
+      lat: elev.lat,
+      lon: elev.lon,
+      elevation: elev.elev_m,
+    },
+    { signal }
+  );
+  signal?.throwIfAborted();
+
   showNwsLinks(false);
   clearForecast();
-  const omJson = await fetchOpenMeteo({
-    lat: elev.lat,
-    lon: elev.lon,
-    elevation: elev.elev_m,
-  }, { signal });
-  const { firstPeriod, grid } = adaptOmToKpis(omJson);
-  renderKPIs(firstPeriod, grid);
-  const totals = adaptOmToTotals(omJson);
-  renderTotals(totals);
-  const hourly = adaptOmToHourly(omJson);
-  renderHourly(hourly, { limitHours: 36 });
+  const { firstPeriod, pop } = adaptOmToKpis(omJson);
+  renderKPIs(firstPeriod, pop);
+  renderTotals(adaptOmToTotals(omJson));
+  renderHourly(adaptOmToHourly(omJson), { limitHours: 36 });
+  return [];
 }
 
 /* ------------------- Main Router ------------------- */
-async function attemptProvider(provider, elev) {
-  const timeout = createTimeoutController(provider.toUpperCase());
+const PROVIDER_LABELS = { nws: 'NWS', 'open-meteo': 'Open-Meteo' };
+
+async function attemptProvider(provider, elev, runSignal) {
+  const timeoutSignal = AbortSignal.timeout(WEATHER_TIMEOUT_MS);
+  const signal = AbortSignal.any([runSignal, timeoutSignal]);
   try {
-    if (provider === 'open-meteo') {
-      await runOpenMeteo(elev, { signal: timeout.signal });
-    } else {
-      await runNws(elev, { signal: timeout.signal });
-    }
-    return { ok: true, provider };
+    const warnings =
+      provider === 'open-meteo'
+        ? await runOpenMeteo(elev, { signal })
+        : await runNws(elev, { signal });
+    return { ok: true, provider, warnings };
   } catch (e) {
-    const message = timeout.signal.aborted
-      ? `${provider} request timed out`
+    // Superseded by a newer run: not a provider failure, don't fall back
+    if (runSignal.aborted) throw e;
+    const message = timeoutSignal.aborted
+      ? `timed out after ${WEATHER_TIMEOUT_MS / 1000}s`
       : e?.message || String(e);
     return { ok: false, provider, error: new Error(message) };
-  } finally {
-    timeout.cancel();
   }
 }
 
-async function fetchWeather(source, elev) {
+async function fetchWeather(source, elev, runSignal) {
   const primary = source === 'open-meteo' ? 'open-meteo' : 'nws';
   const secondary = primary === 'nws' ? 'open-meteo' : 'nws';
 
-  const primaryResult = await attemptProvider(primary, elev);
-  if (primaryResult.ok) return { provider: primary, fallbackUsed: false };
+  const primaryResult = await attemptProvider(primary, elev, runSignal);
+  if (primaryResult.ok) return { ...primaryResult, fallbackUsed: false };
 
-  const fallbackResult = await attemptProvider(secondary, elev);
+  const fallbackResult = await attemptProvider(secondary, elev, runSignal);
   if (fallbackResult.ok)
     return {
-      provider: secondary,
+      ...fallbackResult,
       fallbackUsed: true,
       primaryError: primaryResult.error,
     };
 
   const detail = [primaryResult, fallbackResult]
-    .filter((x) => !x.ok && x.error)
-    .map((x) => `${x.provider}: ${x.error.message}`)
+    .map((x) => `${PROVIDER_LABELS[x.provider]}: ${x.error.message}`)
     .join('; ');
-  throw new Error(
-    detail ? `Weather providers failed (${detail})` : 'Weather providers failed'
-  );
+  throw new Error(`Weather providers failed (${detail})`);
 }
 
 function updateWindyTargets(elev) {
@@ -307,20 +385,13 @@ function updateWindyTargets(elev) {
   }
 }
 
-function updateMapAndRealityLinks(resort, elev) {
-  updateWindyTargets(elev);
-  if (resort) renderRealityLinks(resort);
-}
-
-
-
-async function updateGroundTruthCard(resort) {
-  setStatus('Fetching Ground Truth…');
+async function updateGroundTruthCard(resort, signal) {
   try {
-    // This one function now holds all our priority logic
-    const groundTruthData = await fetchGroundTruth(resort);
+    const groundTruthData = await fetchGroundTruth(resort, { signal });
+    if (signal.aborted) return;
     renderGroundTruth(groundTruthData); // ui.js handles null
   } catch (e) {
+    if (signal.aborted) return;
     console.warn('Ground Truth fetch failed:', e);
     renderGroundTruth(null); // Hide card on any error
   }
@@ -350,40 +421,51 @@ async function run() {
     return;
   }
 
-  try {
-    // Run weather and ground truth in parallel for speed
-    const [weatherResult, groundTruthResult] = await Promise.allSettled([
-      fetchWeather(source, elev),
-      updateGroundTruthCard(r),
-    ]);
-    
-    // This only updates links, so it can run after
-    updateMapAndRealityLinks(r, elev);
-    
-    // Check if any of the main fetches failed
-    if (weatherResult.status === 'rejected') {
-      throw weatherResult.reason;
-    }
-    if (groundTruthResult.status === 'rejected') {
-      console.warn('Ground truth promise failed:', groundTruthResult.reason);
-    }
+  savePrefs();
 
-    const weatherOutcome = weatherResult.value;
-    const statusLabel =
-      weatherOutcome?.fallbackUsed && weatherOutcome?.provider
-        ? `OK (fallback: ${weatherOutcome.provider})`
-        : 'OK (live)';
-    setStatus(statusLabel);
+  // Cancel whatever the previous selection was still loading, so its
+  // responses can't land on top of this one.
+  activeRun?.abort();
+  const controller = new AbortController();
+  activeRun = controller;
+  const { signal } = controller;
+
+  // Links only depend on the selection; no need to wait for the network
+  updateWindyTargets(elev);
+  renderRealityLinks(r);
+  renderGroundTruth(null); // don't leave the previous resort's report up
+
+  const groundTruthDone = updateGroundTruthCard(r, signal);
+
+  try {
+    const outcome = await fetchWeather(source, elev, signal);
+    if (signal.aborted) return;
+
+    const label = PROVIDER_LABELS[outcome.provider];
+    const notes = [];
+    if (outcome.fallbackUsed) {
+      notes.push(
+        `${PROVIDER_LABELS[source === 'open-meteo' ? 'open-meteo' : 'nws']} failed, using fallback`
+      );
+    }
+    notes.push(...outcome.warnings);
+    setStatus(
+      notes.length ? `OK · ${label} (${notes.join('; ')})` : `OK · ${label}`
+    );
   } catch (e) {
+    if (signal.aborted) return; // superseded; the newer run owns the UI
     console.error(e);
     setError(`Fetch failed: ${e.message}`);
     setStatus('Error');
   }
+
+  await groundTruthDone;
 }
 
 function updateWindyMap() {
   const { elev } = getSelected();
   if (!elev) return;
+  savePrefs();
   updateWindyTargets(elev);
 }
 

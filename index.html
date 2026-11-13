@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0b1220" />
-    <title>Snow-Chase • NWS + Windy</title>
+    <title>Snow-Chase</title>
     
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" sizes="192x192" href="/icons/icon-192.svg" type="image/svg+xml" />
@@ -24,8 +24,8 @@
   </head>
   <body>
     <header>
-      <h1>Snow-Chase • NWS + Windy (POC)</h1>
-      <div class="muted">Pick a target, fetch live NWS point + grid, and view Windy.</div>
+      <h1>Snow-Chase</h1>
+      <div class="muted">Forecast, on-mountain conditions and models for one resort at a time.</div>
     </header>
 
     <main class="wrap">
@@ -120,20 +120,17 @@
         </section>
       </div>
 
+      <section class="card" style="margin-top:16px" id="groundTruthCard" hidden>
+        <h2 id="snotelTitle">Conditions Report</h2>
+        <div id="snotelData"></div>
+      </section>
+
       <section class="card" style="margin-top:16px">
         <h2>Reality-Checks</h2>
         <div id="realLinks" class="links"></div>
       </section>
     </main>
 
-    <section class="card" style="margin-top:16px" id="groundTruthCard" hidden>
-        <h2 id="snotelTitle">Ground Truth</h2>
-        <div id="snotelData" class="kpis">
-          </div>
-      </section>
-      </main>
-
     <script type="module" src="/src/app.js"></script>
- 
-    </body>
+  </body>
 </html>

@@ -14,11 +14,7 @@ export function buildWindyUrls({ lat, lon, overlay = 'snow', zoom = 8 }) {
   };
 }
 
-export function setWindyFrame(
-  iframeEl,
-  linkEl,
-  opts
-) {
+export function setWindyFrame(iframeEl, linkEl, opts) {
   const { src, href } = buildWindyUrls(opts);
   iframeEl.src = src;
   linkEl.href = href;

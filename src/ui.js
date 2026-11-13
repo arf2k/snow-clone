@@ -119,7 +119,7 @@ export function renderRealityLinks(r) {
 }
 
 // ---- forecast (period view) ----
-export function renderKPIs(firstPeriod, grid) {
+export function renderKPIs(firstPeriod, pop) {
   // temperature
   els.kpiTemp.textContent = firstPeriod
     ? `${firstPeriod.temperature}°${firstPeriod.temperatureUnit}`
@@ -129,8 +129,7 @@ export function renderKPIs(firstPeriod, grid) {
   const gust = firstPeriod?.windGust || firstPeriod?.windSpeed || '--';
   els.kpiGust.textContent = gust;
 
-  // PoP from grid (first value)
-  const pop = grid?.properties?.probabilityOfPrecipitation?.values?.[0]?.value;
+  // probability of precipitation for the current period (0-100)
   els.kpiPoP.textContent = pop != null ? `${Math.round(pop)}%` : '--';
 }
 
@@ -188,7 +187,8 @@ export function renderHourly(hourlyJson, { limitHours = 36 } = {}) {
   const rows = [];
   for (const p of periods) {
     const t = Date.parse(p.startTime);
-    if (isNaN(t) || t > maxTime) continue;
+    // skip hours that have already ended, and anything past the window
+    if (isNaN(t) || t + 3600000 <= now || t > maxTime) continue;
 
     const popVal =
       p?.probabilityOfPrecipitation?.value ?? p?.probabilityOfPrecipitation;
@@ -227,8 +227,6 @@ export function renderGroundTruth(data) {
 
   els.groundTruthCard.hidden = false;
 
-  const resortName = els.spot.options[els.spot.selectedIndex].text.split(',')[0];
-  // We no longer need the detailed title since we have the source at the bottom
   els.snotelTitle.textContent = `Conditions Report`;
 
   // 1. Build KPIs (Grid)
@@ -245,9 +243,11 @@ export function renderGroundTruth(data) {
   };
 
   addKpi('Base Depth', data.depth, '"');
-  addKpi('24h Snow', data.change24h, '"');
+  // SNOTEL reports settled depth, so its day-over-day figure can be negative
+  const isSnotel = String(data.source || '').startsWith('SNOTEL');
+  addKpi(isSnotel ? 'Depth Change 24h' : '24h Snow', data.change24h, '"');
   addKpi('Season Total', data.seasonTotal, '"');
-  
+
   if (data.openLifts != null && data.totalLifts != null) {
     addKpi('Lifts Open', `${data.openLifts}/${data.totalLifts}`);
   }
@@ -260,9 +260,13 @@ export function renderGroundTruth(data) {
 
   // 2. Build Extended Attributes (Flex List)
   let attrHtml = '';
-  if (data.attributes && Array.isArray(data.attributes) && data.attributes.length > 0) {
+  if (
+    data.attributes &&
+    Array.isArray(data.attributes) &&
+    data.attributes.length > 0
+  ) {
     attrHtml += `<div class="gt-attributes">`;
-    data.attributes.forEach(attr => {
+    data.attributes.forEach((attr) => {
       // attr = { label, value, type: 'info'|'success'|'warning'|'error' }
       attrHtml += `
         <div class="attr-row">

@@ -9,51 +9,39 @@ function getSnotelDate(date) {
 }
 
 /**
- * Parses the complex NRCS JSON response to find a single value.
+ * Returns the valid daily readings for one element, oldest first.
  */
-function parseElement(data, element, dayIndex) {
-  try {
-    const series = data.find((s) => s.stationElement.elementCode === element);
-    if (!series) return null;
-
-    const values = series.values;
-    if (!values || values.length === 0) return null;
-
-    // Data is returned in chronological order, so 0 is yesterday, 1 is today.
-    const val = values[dayIndex]?.value;
-
-    return val != null && val > -1000 ? val : null;
-  } catch (e) {
-    console.warn(`Failed to parse SNOTEL element ${element}`, e);
-    return null;
-  }
+function readings(data, element) {
+  const series = data.find((s) => s?.stationElement?.elementCode === element);
+  return (series?.values || []).filter(
+    (v) => v?.value != null && v.value > -1000
+  );
 }
 
 /**
  * Fetches SNOTEL data for a given station.
  */
-export async function fetchSnotelData(stationTriplet) {
+export async function fetchSnotelData(stationTriplet, { signal } = {}) {
   const elements = 'SNWD,WTEQ,TAVG'; // Snow Depth, Water Equivalent, Avg Temp
 
+  // Ask for a week and use the newest reading that exists: today's daily
+  // value is usually not posted yet, and stations sometimes skip a day.
   const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 3600000);
 
-  const beginDate = getSnotelDate(yesterday);
+  const beginDate = getSnotelDate(weekAgo);
   const endDate = getSnotelDate(today);
 
   const u = new URL('/api/snotel/data', window.location.origin);
 
   u.searchParams.set('stationTriplets', stationTriplet);
   u.searchParams.set('elements', elements);
-  u.searchParams.set('timeseries', 'daily');
-  u.searchParams.set('format', 'json');
-  u.searchParams.set('units', 'english');
+  u.searchParams.set('duration', 'DAILY');
 
   u.searchParams.set('beginDate', beginDate);
   u.searchParams.set('endDate', endDate);
 
-  const r = await fetch(u.toString());
+  const r = await fetch(u.toString(), { signal });
   if (!r.ok) {
     const errBody = await r.text();
     console.error('SNOTEL API Error Body:', errBody);
@@ -68,31 +56,22 @@ export async function fetchSnotelData(stationTriplet) {
   }
 
   const stationData = data[0].data;
-  const stationName = data[0]?.stationName || stationTriplet;
 
-  // With a 2-day range, index 0 = yesterday, index 1 = today
-  const todayVal = {
-    depth: parseElement(stationData, 'SNWD', 1),
-    wteq: parseElement(stationData, 'WTEQ', 1),
-    temp: parseElement(stationData, 'TAVG', 1),
-  };
+  const depths = readings(stationData, 'SNWD');
+  const latest = depths.at(-1);
+  const previous = depths.at(-2);
+  const wteq = readings(stationData, 'WTEQ').at(-1);
+  const temp = readings(stationData, 'TAVG').at(-1);
 
-  const yesterdayVal = {
-    depth: parseElement(stationData, 'SNWD', 0),
-  };
-
-  // Calculate 24h change
-  const change24h =
-    todayVal.depth != null && yesterdayVal.depth != null
-      ? todayVal.depth - yesterdayVal.depth
-      : null;
+  if (!latest && !wteq) return null;
 
   return {
-    name: stationName,
-    source: 'snotel',
-    depth: todayVal.depth,
-    wteq: todayVal.wteq,
-    temp: todayVal.temp,
-    change24h: change24h,
+    name: data[0]?.stationName || stationTriplet,
+    source: `SNOTEL ${stationTriplet}${latest ? ` · ${latest.date}` : ''}`,
+    depth: latest?.value ?? null,
+    wteq: wteq?.value ?? null,
+    temp: temp?.value ?? null,
+    // Change in settled depth between the last two readings (can be negative)
+    change24h: latest && previous ? latest.value - previous.value : null,
   };
 }

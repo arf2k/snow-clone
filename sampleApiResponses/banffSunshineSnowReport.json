@@ -1,0 +1,265 @@
+{
+    "forecast": {
+        "todayOnly": {
+            "period": "Tonight",
+            "conditions": {
+                "freezing_level": {
+                    "imperial": 1524,
+                    "metric": 600
+                },
+                "temperature": {
+                    "low": {
+                        "imperial": 21,
+                        "metric": -6
+                    }
+                },
+                "precipitation": {
+                    "type": "none",
+                    "amount": "0"
+                },
+                "wind": {
+                    "direction": "W",
+                    "speed": {
+                        "imperial": 19,
+                        "metric": 30
+                    }
+                }
+            },
+            "summary": "Cloudy with evening clear periods.",
+            "iconcode": "33"
+        },
+        "today": [
+            {
+                "period": "Tonight",
+                "conditions": {
+                    "freezing_level": {
+                        "imperial": 1524,
+                        "metric": 600
+                    },
+                    "temperature": {
+                        "low": {
+                            "imperial": 21,
+                            "metric": -6
+                        }
+                    },
+                    "precipitation": {
+                        "type": "none",
+                        "amount": "0"
+                    },
+                    "wind": {
+                        "direction": "W",
+                        "speed": {
+                            "imperial": 19,
+                            "metric": 30
+                        }
+                    }
+                },
+                "summary": "Cloudy with evening clear periods.",
+                "iconcode": "33"
+            },
+            {
+                "period": "Friday",
+                "conditions": {
+                    "freezing_level": {
+                        "imperial": 5334,
+                        "metric": 2100
+                    },
+                    "temperature": {
+                        "high": {
+                            "imperial": 28,
+                            "metric": -2
+                        }
+                    },
+                    "precipitation": {
+                        "type": "snow",
+                        "amount": "Trace"
+                    },
+                    "wind": {
+                        "direction": "W",
+                        "speed": {
+                            "imperial": 19,
+                            "metric": 30
+                        }
+                    }
+                },
+                "summary": "Cloudy with isolated light flurries. ",
+                "iconcode": "16"
+            }
+        ],
+        "week": [
+            {
+                "period": "Saturday",
+                "conditions": {
+                    "freezing_level": {
+                        "imperial": 5080,
+                        "metric": 2000
+                    },
+                    "temperature": {
+                        "low": {
+                            "imperial": 23,
+                            "metric": -5
+                        },
+                        "high": {
+                            "imperial": 30,
+                            "metric": -1
+                        }
+                    },
+                    "precipitation": {
+                        "type": "snow",
+                        "amount": "Trace-3"
+                    },
+                    "wind": {
+                        "direction": "S",
+                        "speed": {
+                            "imperial": 13,
+                            "metric": 20
+                        }
+                    }
+                },
+                "summary": "Mainly cloudy with isolated light flurries. ",
+                "iconcode": "16"
+            },
+            {
+                "period": "Sunday",
+                "conditions": {
+                    "freezing_level": {
+                        "imperial": 4318,
+                        "metric": 1700
+                    },
+                    "temperature": {
+                        "low": {
+                            "imperial": 23,
+                            "metric": -5
+                        },
+                        "high": {
+                            "imperial": 30,
+                            "metric": -1
+                        }
+                    },
+                    "precipitation": {
+                        "type": "snow",
+                        "amount": "1-3"
+                    },
+                    "wind": {
+                        "direction": "S",
+                        "speed": {
+                            "imperial": 0,
+                            "metric": 0
+                        }
+                    }
+                },
+                "summary": "Cloudy with scattered flurries. ",
+                "iconcode": "16"
+            },
+            {
+                "period": "Monday",
+                "conditions": {
+                    "freezing_level": {
+                        "imperial": 4318,
+                        "metric": 1700
+                    },
+                    "temperature": {
+                        "low": {
+                            "imperial": 19,
+                            "metric": -7
+                        },
+                        "high": {
+                            "imperial": 28,
+                            "metric": -2
+                        }
+                    },
+                    "precipitation": {
+                        "type": "snow",
+                        "amount": "8-12"
+                    },
+                    "wind": {
+                        "direction": "S",
+                        "speed": {
+                            "imperial": 19,
+                            "metric": 30
+                        }
+                    }
+                },
+                "summary": "Cloudy with flurries. ",
+                "iconcode": "17"
+            }
+        ]
+    },
+    "summary": "<p>A weak ridge of high pressure continues to bring some sunny periods to the mountains through tomorrow morning as patchy cloud continue to persist. <\/p><p>The pattern is expected to turn more active again on from late tomorrow into the first half of next week with some light snowfall accumulations expected but any details with respect to amounts or timing are still in discussion among the weather models and will be updated in future forecast issues. <\/p>",
+    "timestamp": "2025-11-20 06:00:00",
+    "snowreport": {
+        "homepage": {
+            "title": "Past 7 Days",
+            "imperial": "4.3 in",
+            "metric": 11
+        },
+        "overnight": {
+            "title": "Overnight",
+            "imperial": "0 in",
+            "metric": 0,
+            "display": false
+        },
+        "past24Hours": {
+            "title": "24 Hours",
+            "imperial": "0 in",
+            "metric": 0,
+            "display": false
+        },
+        "historical": {
+            "title": "7 Days",
+            "inverval_days": 7,
+            "imperial": "4.3 in",
+            "metric": 11,
+            "display": true
+        },
+        "settledBase": {
+            "title": "Settled Base",
+            "imperial": "1 ft 10 in",
+            "metric": 55,
+            "display": true
+        },
+        "seasonTotal": {
+            "title": "Cumulative",
+            "imperial": "3 ft 8 in",
+            "metric": 113,
+            "display": true
+        },
+        "paris_overnight": {
+            "title": "Overnight",
+            "imperial": "0 in",
+            "metric": "0",
+            "display": false
+        },
+        "paris_24hr": {
+            "title": "24hr",
+            "imperial": "0 in",
+            "metric": "0",
+            "display": false
+        },
+        "paris_xdays": {
+            "title": "7 Day",
+            "imperial": "9 in",
+            "metric": "22",
+            "display": true
+        },
+        "paris_base": {
+            "title": "Base",
+            "imperial": "3 ft 5 in",
+            "metric": "104",
+            "display": true
+        },
+        "paris_snowfall": {
+            "title": "Cumulative",
+            "imperial": "5 ft 4 in",
+            "metric": "163",
+            "display": true
+        },
+        "summary": "&lt;b style&equals;&quot;color&colon; DodgerBlue&semi; text-shadow&colon; -1px 1px Gold&semi;&quot;&gt;&ast;&ast;&ast;Sunshine Village is now open for the season&excl;&ast;&ast;&ast;&lt;&sol;b&gt; ",
+        "village_temp": {
+            "imperial": 23,
+            "metric": -5,
+            "iconcode": "33"
+        },
+        "timestamp": "2025-11-20 07:09:00"
+    }
+}

@@ -1,6 +1,8 @@
 node_modules/
+dist/
 .npm/
 .DS_Store
 npm-debug.log*
-src/config.js
-src/secrets.js
+.env
+.env.*
+!.env.example
