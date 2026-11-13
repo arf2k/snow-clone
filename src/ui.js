@@ -1,13 +1,14 @@
 // src/ui.js
+import { dailyBars } from './charts.js';
 
 // ---- element handles ----
 
-// The elevation picker is a group of radio buttons; this gives it the same
+// Segmented controls are groups of radio buttons; this gives one the same
 // .value interface as a <select> so callers don't care which it is.
-function elevControl(group) {
+function radioGroup(group, fallback) {
   return {
     get value() {
-      return group.querySelector('input:checked')?.value || 'summit';
+      return group.querySelector('input:checked')?.value || fallback;
     },
     set value(v) {
       const input = [...group.querySelectorAll('input')].find(
@@ -24,7 +25,7 @@ function elevControl(group) {
 export const els = {
   // controls
   spot: document.getElementById('spot'),
-  elev: elevControl(document.getElementById('elev')),
+  elev: radioGroup(document.getElementById('elev'), 'summit'),
   source: document.getElementById('source'),
   refresh: document.getElementById('refresh'),
   overlaySel: document.getElementById('overlay'),
@@ -75,7 +76,19 @@ export const els = {
   rankRegion: document.getElementById('rankRegion'),
   rankRefresh: document.getElementById('rankRefresh'),
   rankStatus: document.getElementById('rankStatus'),
-  rankElevLabel: document.getElementById('rankElevLabel'),
+  rankCaption: document.getElementById('rankCaption'),
+  rankMode: radioGroup(document.getElementById('rankMode'), 'outlook'),
+  tripControls: document.getElementById('tripControls'),
+  tripStart: document.getElementById('tripStart'),
+  tripEnd: document.getElementById('tripEnd'),
+
+  // compare
+  compareCard: document.getElementById('compareCard'),
+  compareBody: document.getElementById('compareBody'),
+  cmp: [0, 1, 2].map((i) => document.getElementById(`cmp${i}`)),
+  addCompare: document.getElementById('addCompare'),
+
+  dailyChart: document.getElementById('dailyChart'),
   rankHead: document.getElementById('rankHead'),
   rankBody: document.getElementById('rankBody'),
   detailTop: document.getElementById('detailTop'),
@@ -473,55 +486,259 @@ function snowCell(inches, isSorted) {
 
 /**
  * @param {Array} rows - already filtered and sorted
- * @param {{sort:{key:string,dir:string}, selectedId:string, windHoldMph:number}} opts
+ * @param {object} o
+ * @param {Array<{key, label, kind?: 'gust', title?}>} o.columns - the value
+ *   columns after Resort; they differ between the outlook and trip views
+ * @param {{key:string, dir:string}} o.sort
  */
-export function renderRanking(rows, { sort, selectedId, windHoldMph }) {
-  // header sort indicators
-  els.rankHead.querySelectorAll('th').forEach((th) => {
-    const btn = th.querySelector('button[data-sort]');
-    if (!btn) return;
-    const active = btn.dataset.sort === sort.key;
-    th.setAttribute(
-      'aria-sort',
-      active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
-    );
-    btn.querySelector('.arrow').textContent = active
+export function renderRanking(
+  rows,
+  { columns, sort, selectedId, windHoldMph }
+) {
+  const arrow = (key) =>
+    sort.key === key ? (sort.dir === 'asc' ? '▲' : '▼') : '';
+  const ariaSort = (key) =>
+    sort.key === key
       ? sort.dir === 'asc'
-        ? '▲'
-        : '▼'
-      : '';
-  });
+        ? 'ascending'
+        : 'descending'
+      : 'none';
+  const head = (key, label, cls = '', title = '') =>
+    `<th class="${cls}" aria-sort="${ariaSort(key)}"><button type="button" data-sort="${esc(key)}"${
+      title ? ` title="${esc(title)}"` : ''
+    }>${esc(label)} <span class="arrow">${arrow(key)}</span></button></th>`;
+
+  els.rankHead.innerHTML = `<tr>
+      <th class="num">#</th>
+      ${head('name', 'Resort')}
+      ${columns.map((c) => head(c.key, c.label, 'num', c.title)).join('')}
+    </tr>`;
 
   if (!rows.length) {
-    els.rankBody.innerHTML =
-      '<tr><td colspan="6" class="muted">No resorts to show.</td></tr>';
+    els.rankBody.innerHTML = `<tr><td colspan="${columns.length + 2}" class="muted">No resorts to show.</td></tr>`;
     return;
   }
 
+  const gustCell = (v) => {
+    if (v == null) return '<td class="num muted">--</td>';
+    const windy = v >= windHoldMph;
+    return `<td class="num${windy ? ' windy' : ''}"${
+      windy
+        ? ` title="Gusts at or above ${windHoldMph} mph: wind-hold risk"`
+        : ''
+    }>${windy ? '⚠ ' : ''}${Math.round(v)} mph</td>`;
+  };
+
   els.rankBody.innerHTML = rows
-    .map((row, i) => {
-      const windy = row.gust24 != null && row.gust24 >= windHoldMph;
-      const gust =
-        row.gust24 == null
-          ? '<td class="num muted">--</td>'
-          : `<td class="num${windy ? ' windy' : ''}"${
-              windy
-                ? ` title="Gusts at or above ${windHoldMph} mph: wind-hold risk"`
-                : ''
-            }>${windy ? '⚠ ' : ''}${Math.round(row.gust24)} mph</td>`;
-      return `
+    .map(
+      (row, i) => `
       <tr data-id="${esc(row.id)}" tabindex="0"${
         row.id === selectedId ? ' class="selected" aria-current="true"' : ''
       }>
         <td class="num muted">${i + 1}</td>
         <td>${esc(row.name)}<span class="rank-region muted">${esc(row.region)}</span></td>
-        ${snowCell(row.snow24, sort.key === 'snow24')}
-        ${snowCell(row.snow72, sort.key === 'snow72')}
-        ${snowCell(row.snow7d, sort.key === 'snow7d')}
-        ${gust}
-      </tr>`;
-    })
+        ${columns
+          .map((c) =>
+            c.kind === 'gust'
+              ? gustCell(row[c.key])
+              : snowCell(row[c.key], sort.key === c.key)
+          )
+          .join('')}
+      </tr>`
+    )
     .join('');
+}
+
+export function setRankingCaption(text) {
+  els.rankCaption.textContent = text || '';
+}
+
+// ---- Snowfall by day ----
+export function renderDailyChart(chart) {
+  els.dailyChart.innerHTML = chart
+    ? dailyBars(chart)
+    : '<p class="muted">Loading the daily forecast…</p>';
+}
+
+// ---- Compare ----
+export function renderCompareOptions(resorts) {
+  const options = resorts
+    .map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`)
+    .join('');
+  els.cmp.forEach((sel, i) => {
+    sel.innerHTML =
+      (i === 0 ? '' : '<option value="">— none —</option>') + options;
+  });
+}
+
+/**
+ * @param {object} o
+ * @param {Array<{id, name, row, report}>} o.cols - row: ranking row or
+ *   undefined; report: { state: 'loading'|'done', data, terrain }
+ * @param {{label: string, totals: Map<string, object>}|null} o.trip
+ */
+export function renderCompare({ cols, trip, days, windHoldMph }) {
+  if (cols.length < 2) {
+    els.compareBody.innerHTML =
+      '<p class="muted empty">Pick at least two resorts to compare.</p>';
+    return;
+  }
+
+  // values: one per column; `best` marks the highest when it is meaningful
+  const line = (label, values, { best = false, cls = '' } = {}) => {
+    const nums = values.map((v) => (typeof v?.n === 'number' ? v.n : null));
+    const max = Math.max(...nums.filter((n) => n != null), 0);
+    const distinct = new Set(nums.filter((n) => n != null)).size > 1;
+    return `<tr class="${cls}"><th scope="row">${esc(label)}</th>${values
+      .map((v, i) => {
+        const top = best && distinct && max > 0 && nums[i] === max;
+        return `<td class="num${top ? ' best' : ''}${v?.warn ? ' windy' : ''}">${v?.html ?? esc(v?.text ?? '--')}</td>`;
+      })
+      .join('')}</tr>`;
+  };
+  const section = (label) =>
+    `<tr class="cmp-section"><th scope="colgroup" colspan="${cols.length + 1}">${esc(label)}</th></tr>`;
+  const snow = (v) =>
+    v == null
+      ? { text: '--' }
+      : { n: v, text: v < 0.05 ? '0' : `${v.toFixed(1)}"` };
+  const pending = (c) => c.report?.state !== 'done';
+  const wait = { text: '…' };
+
+  const reported = (pick) =>
+    cols.map((c) => {
+      if (pending(c)) return wait;
+      const v = pick(c.report.data, c.report.terrain);
+      return v ?? { text: '--' };
+    });
+
+  const isSnotel = (d) => String(d?.source || '').startsWith('SNOTEL');
+  const rows = [
+    section('Reported now'),
+    line(
+      'New snow, 24h',
+      reported((d) =>
+        d && !isSnotel(d) && d.change24h != null
+          ? { n: Number(d.change24h), text: `${d.change24h}"` }
+          : null
+      ),
+      { best: true }
+    ),
+    line(
+      'Base depth',
+      reported((d) =>
+        d?.depth != null ? { n: Number(d.depth), text: `${d.depth}"` } : null
+      ),
+      { best: true }
+    ),
+    line(
+      'Lifts open',
+      reported((d, t) =>
+        t?.summary?.liftsTotal != null
+          ? {
+              n: t.summary.liftsOpen ?? 0,
+              text: `${t.summary.liftsOpen ?? 0}/${t.summary.liftsTotal}`,
+            }
+          : null
+      ),
+      { best: true }
+    ),
+    line(
+      'Trails open',
+      reported((d, t) =>
+        t?.summary?.trailsTotal != null
+          ? {
+              n: t.summary.trailsOpen ?? 0,
+              text: `${t.summary.trailsOpen ?? 0}/${t.summary.trailsTotal}`,
+            }
+          : null
+      ),
+      { best: true }
+    ),
+    section('Forecast (Open-Meteo)'),
+    line(
+      'Next 24h',
+      cols.map((c) => snow(c.row?.snow24)),
+      { best: true }
+    ),
+    line(
+      'Next 72h',
+      cols.map((c) => snow(c.row?.snow72)),
+      { best: true }
+    ),
+    line(
+      'Next 7 days',
+      cols.map((c) => snow(c.row?.snow7d)),
+      { best: true }
+    ),
+  ];
+  if (trip) {
+    rows.push(
+      line(
+        `Trip: ${trip.label}`,
+        cols.map((c) => snow(trip.totals.get(c.id)?.total)),
+        { best: true }
+      )
+    );
+  }
+  rows.push(
+    line(
+      'Max gust, 24h',
+      cols.map((c) =>
+        c.row?.gust24 == null
+          ? { text: '--' }
+          : {
+              text: `${Math.round(c.row.gust24)} mph`,
+              warn: c.row.gust24 >= windHoldMph,
+            }
+      )
+    ),
+    line(
+      'By day',
+      cols.map((c) =>
+        c.row?.daily?.length
+          ? {
+              html: dailyBars({
+                days: days.map((d) => ({ label: d })),
+                series: [
+                  {
+                    name: 'Open-Meteo',
+                    slot: 2,
+                    values: c.row.daily
+                      .slice(0, days.length)
+                      .map((d) => d.snow),
+                  },
+                ],
+                compact: true,
+                // one shared scale, so bar heights compare across resorts
+                max: Math.max(
+                  ...cols.flatMap((x) =>
+                    (x.row?.daily || [])
+                      .slice(0, days.length)
+                      .map((d) => d.snow || 0)
+                  )
+                ),
+              }),
+            }
+          : { text: '--' }
+      ),
+      { cls: 'cmp-chart' }
+    )
+  );
+
+  els.compareBody.innerHTML = `
+    <div class="table-scroll">
+      <table class="cmp" aria-label="Resort comparison">
+        <thead><tr><th></th>${cols
+          .map(
+            (c) =>
+              `<th scope="col"><button type="button" data-open-resort="${esc(c.id)}" title="Open ${esc(c.name)}">${esc(c.name)}</button></th>`
+          )
+          .join('')}</tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+    </div>
+    <p class="muted compare-notes">Highest value in each row is highlighted. Forecast is at the selected elevation; tap a resort name to open it.</p>`;
 }
 
 // ---- Lifts & trails ----

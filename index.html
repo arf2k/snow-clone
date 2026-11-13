@@ -38,26 +38,48 @@
         <div class="controls">
           <label for="rankRegion">Region:</label>
           <select id="rankRegion"><option value="">All regions</option></select>
-          <span class="muted">Forecast snowfall at <b id="rankElevLabel">summit</b> elevation · Open-Meteo · tap a resort for detail</span>
         </div>
+
+        <fieldset id="rankMode" class="seg">
+          <legend class="sr-only">Ranking view</legend>
+          <label><input type="radio" name="rankMode" value="outlook" checked /><span>Outlook</span></label>
+          <label><input type="radio" name="rankMode" value="trip" /><span>Trip</span></label>
+        </fieldset>
+
+        <div id="tripControls" class="trip" hidden>
+          <div class="trip-presets">
+            <button type="button" class="tab" data-trip-weekend="0">This weekend</button>
+            <button type="button" class="tab" data-trip-weekend="1">Next weekend</button>
+          </div>
+          <div class="trip-dates">
+            <label for="tripStart">From</label>
+            <input type="date" id="tripStart" />
+            <label for="tripEnd">To</label>
+            <input type="date" id="tripEnd" />
+          </div>
+        </div>
+
+        <p id="rankCaption" class="muted rank-caption"></p>
         <div class="rank-scroll">
           <table class="rank" aria-label="Resorts ranked by forecast snowfall">
-            <thead id="rankHead">
-              <tr>
-                <th class="num">#</th>
-                <th><button type="button" data-sort="name">Resort <span class="arrow"></span></button></th>
-                <th class="num"><button type="button" data-sort="snow24">24h <span class="arrow"></span></button></th>
-                <th class="num"><button type="button" data-sort="snow72">72h <span class="arrow"></span></button></th>
-                <th class="num"><button type="button" data-sort="snow7d">7 days <span class="arrow"></span></button></th>
-                <th class="num"><button type="button" data-sort="gust24" title="Strongest forecast gust in the next 24 hours">Max gust <span class="arrow"></span></button></th>
-              </tr>
-            </thead>
+            <thead id="rankHead"></thead>
             <tbody id="rankBody">
               <tr><td colspan="6" class="muted">Loading…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
+
+      <!-- ============ Compare ============ -->
+      <details class="card more" id="compareCard">
+        <summary><h2>Compare resorts</h2></summary>
+        <div class="compare-picks">
+          <select id="cmp0" aria-label="First resort to compare"></select>
+          <select id="cmp1" aria-label="Second resort to compare"></select>
+          <select id="cmp2" aria-label="Third resort to compare"></select>
+        </div>
+        <div id="compareBody"></div>
+      </details>
 
       <!-- ============ Resort: header + verdict ============ -->
       <section class="card resort-head" id="detailTop">
@@ -82,7 +104,7 @@
         </div>
 
         <div class="resort-foot">
-          <span id="realLinks" class="links"></span>
+          <span class="links"><span id="realLinks"></span> • <button type="button" id="addCompare" class="link-btn">+ Compare</button></span>
           <span id="status" class="muted" role="status"></span>
         </div>
         <div id="error" class="err"></div>
@@ -108,6 +130,9 @@
           </div>
 
           <div id="forecastCompare"></div>
+
+          <h3 class="sub">Snowfall by day</h3>
+          <div id="dailyChart"></div>
 
           <div class="kpis">
             <div class="kpi"><span class="muted">Temp now</span><b id="kpiTemp">--</b></div>

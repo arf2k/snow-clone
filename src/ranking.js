@@ -27,11 +27,29 @@ function summarize(hourly) {
   };
 }
 
+// Calendar days in the resort's own timezone: [{ date: 'YYYY-MM-DD',
+// snow (inches), gust (mph) }]. daily.time is the unix time of local
+// midnight, so adding the UTC offset and reading it as UTC gives the date.
+function dailyOutlook(daily, utcOffsetSeconds) {
+  if (!daily?.time) return [];
+  return daily.time.map((t, i) => ({
+    date: new Date((t + (utcOffsetSeconds || 0)) * 1000)
+      .toISOString()
+      .slice(0, 10),
+    snow:
+      daily.snowfall_sum?.[i] != null
+        ? daily.snowfall_sum[i] / CM_PER_IN
+        : null,
+    gust: daily.wind_gusts_10m_max?.[i] ?? null,
+  }));
+}
+
 /**
  * Fetch the next-7-day outlook for all resorts at one elevation band.
  * Open-Meteo accepts comma-separated coordinates and answers with one entry
  * per location, in request order.
- * @returns {Promise<Array<{id, name, region, snow24, snow72, snow7d, gust24}>>}
+ * @returns {Promise<Array<{id, name, region, snow24, snow72, snow7d, gust24,
+ *   utcOffset, daily}>>}
  */
 export async function fetchRanking(resorts, elevKey, { signal } = {}) {
   const targets = resorts
@@ -46,10 +64,14 @@ export async function fetchRanking(resorts, elevKey, { signal } = {}) {
   if (targets.every(({ e }) => e.elev_m != null)) {
     u.searchParams.set('elevation', targets.map(({ e }) => e.elev_m).join(','));
   }
+  // Hourly for the rolling 24h / 72h / 7-day totals...
   u.searchParams.set('hourly', 'snowfall,wind_gusts_10m');
-  u.searchParams.set('forecast_days', '8'); // a full 7 days from any hour
+  u.searchParams.set('forecast_hours', '192'); // a full 7 days from any hour
+  // ...and daily, as far out as the model goes, for the chart and trip view
+  u.searchParams.set('daily', 'snowfall_sum,wind_gusts_10m_max');
+  u.searchParams.set('forecast_days', '16');
   u.searchParams.set('timeformat', 'unixtime');
-  u.searchParams.set('timezone', 'GMT');
+  u.searchParams.set('timezone', 'auto'); // daily values per resort-local day
   u.searchParams.set('wind_speed_unit', 'mph');
 
   const res = await fetch(u.toString(), { signal });
@@ -67,5 +89,7 @@ export async function fetchRanking(resorts, elevKey, { signal } = {}) {
     name: r.name,
     region: r.region,
     ...summarize(list[i].hourly),
+    utcOffset: list[i].utc_offset_seconds || 0,
+    daily: dailyOutlook(list[i].daily, list[i].utc_offset_seconds),
   }));
 }
