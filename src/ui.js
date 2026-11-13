@@ -64,6 +64,7 @@ export const els = {
   groundTruthCard: document.getElementById('groundTruthCard'),
   snotelTitle: document.getElementById('snotelTitle'),
   snotelData: document.getElementById('snotelData'),
+  terrain: document.getElementById('terrain'),
 };
 
 // ---- escaping ----
@@ -289,12 +290,6 @@ export function renderGroundTruth(data) {
   addKpi(isSnotel ? 'Depth Change 24h' : '24h Snow', data.change24h, '"');
   addKpi('Season Total', data.seasonTotal, '"');
 
-  if (data.openLifts != null && data.totalLifts != null) {
-    addKpi('Lifts Open', `${data.openLifts}/${data.totalLifts}`);
-  }
-  if (data.openTrails != null && data.totalTrails != null) {
-    addKpi('Trails Open', `${data.openTrails}/${data.totalTrails}`);
-  }
   if (data.temp != null) {
     addKpi('Temp', data.temp, '°F');
   }
@@ -411,3 +406,182 @@ export function renderRanking(rows, { sort, selectedId, windHoldMph }) {
     })
     .join('');
 }
+
+// ---- Lifts & trails ----
+const STATUS_LABELS = {
+  open: 'Open',
+  hold: 'On hold',
+  scheduled: 'Expected',
+  closed: 'Closed',
+};
+const LEVEL_MARKS = {
+  green: '●',
+  blue: '■',
+  black: '◆',
+  double: '◆◆',
+  park: '▲',
+  other: '○',
+};
+const LEVEL_ORDER = ['green', 'blue', 'black', 'double', 'park', 'other'];
+
+let terrainState = null; // what is currently shown
+let trailFilter = 'all'; // all | open | groomed
+
+function statusChip(item) {
+  // An unrecognised status is shown in the feed's own words
+  const label = STATUS_LABELS[item.status] || item.rawStatus || 'Unknown';
+  return `<span class="chip ${esc(item.status)}">${esc(label)}</span>`;
+}
+
+function levelMark(level, label) {
+  return `<span class="lvl ${esc(level)}" title="${esc(label)}">${LEVEL_MARKS[level] || LEVEL_MARKS.other}</span>`;
+}
+
+// [{ area, items }] in first-seen order; a single unnamed group has no heading
+function groupByArea(items) {
+  const groups = new Map();
+  for (const it of items) {
+    if (!groups.has(it.area)) groups.set(it.area, []);
+    groups.get(it.area).push(it);
+  }
+  return [...groups].map(([area, list]) => ({ area, items: list }));
+}
+
+function groupHtml(items, rowHtml) {
+  return groupByArea(items)
+    .map(
+      ({ area, items: list }) => `
+      ${area ? `<div class="terrain-area">${esc(area)}</div>` : ''}
+      <ul class="terrain-list">${list.map(rowHtml).join('')}</ul>`
+    )
+    .join('');
+}
+
+function liftsHtml(lifts) {
+  if (!lifts.length) return '<p class="muted">No lift list in this feed.</p>';
+  return groupHtml(lifts, (l) => {
+    const sub = [l.type, l.wait != null ? `${l.wait} min wait` : '', l.note]
+      .filter(Boolean)
+      .join(' · ');
+    return `<li>
+        <span class="terrain-name">${esc(l.name)}${sub ? `<span class="muted">${esc(sub)}</span>` : ''}</span>
+        ${statusChip(l)}
+      </li>`;
+  });
+}
+
+function trailsHtml(trails) {
+  const shown = trails.filter(
+    (t) =>
+      trailFilter === 'all' ||
+      (trailFilter === 'open' && t.status === 'open') ||
+      (trailFilter === 'groomed' && t.groomed)
+  );
+  if (!trails.length) return '<p class="muted">No trail list in this feed.</p>';
+  if (!shown.length) {
+    return `<p class="muted">No ${trailFilter === 'open' ? 'open' : 'groomed'} trails right now.</p>`;
+  }
+  return groupHtml(
+    shown,
+    (t) => `<li>
+        <span class="terrain-name">${levelMark(t.level, t.levelLabel)} ${esc(t.name)}${
+          t.groomed ? '<span class="groomed">groomed</span>' : ''
+        }</span>
+        ${statusChip(t)}
+      </li>`
+  );
+}
+
+function filterButtons() {
+  return ['all', 'open', 'groomed']
+    .map(
+      (f) =>
+        `<button type="button" class="tab${f === trailFilter ? ' active' : ''}" data-trail-filter="${f}" aria-pressed="${f === trailFilter}">${f[0].toUpperCase()}${f.slice(1)}</button>`
+    )
+    .join('');
+}
+
+function levelBreakdown(trails) {
+  return LEVEL_ORDER.map((level) => {
+    const ofLevel = trails.filter((t) => t.level === level);
+    if (!ofLevel.length) return '';
+    const open = ofLevel.filter((t) => t.status === 'open').length;
+    const label = level === 'other' ? 'Other' : ofLevel[0].levelLabel;
+    return `<span class="terrain-stat" title="${esc(label)}">${levelMark(level, label)} ${open}/${ofLevel.length}</span>`;
+  }).join('');
+}
+
+/**
+ * @param {object|null|'loading'} terrain - from terrain.js; 'loading' shows
+ *   a placeholder while a separate lift/trail request is in flight
+ */
+export function renderTerrain(terrain) {
+  terrainState = terrain && terrain !== 'loading' ? terrain : null;
+  if (!terrain) {
+    els.terrain.hidden = true;
+    els.terrain.innerHTML = '';
+    return;
+  }
+  els.terrain.hidden = false;
+  if (terrain === 'loading') {
+    els.terrain.innerHTML =
+      '<p class="muted terrain-loading">Loading lifts and trails…</p>';
+    return;
+  }
+
+  const { summary: s, trails } = terrain;
+  const stats = [];
+  if (s.liftsHold > 0) {
+    stats.push(
+      `<span class="terrain-stat hold">${s.liftsHold} lift${s.liftsHold === 1 ? '' : 's'} on hold</span>`
+    );
+  }
+  if (s.groomed != null && trails.length + (s.trailsTotal || 0) > 0) {
+    stats.push(`<span class="terrain-stat">Groomed ${s.groomed}</span>`);
+  }
+  if (s.acresTotal) {
+    stats.push(
+      `<span class="terrain-stat">Acres ${s.acresOpen ?? 0}/${s.acresTotal}</span>`
+    );
+  }
+
+  els.terrain.innerHTML = `
+    <div class="terrain-stats">${levelBreakdown(trails)}${stats.join('')}</div>
+    <details class="terrain-details" data-kind="lifts">
+      <summary>Lifts <b>${s.liftsOpen ?? '--'}/${s.liftsTotal ?? '--'} open</b></summary>
+      <div class="terrain-body"></div>
+    </details>
+    <details class="terrain-details" data-kind="trails">
+      <summary>Trails <b>${s.trailsOpen ?? '--'}/${s.trailsTotal ?? '--'} open</b></summary>
+      <div class="terrain-filters">${filterButtons()}</div>
+      <div class="terrain-body"></div>
+    </details>`;
+}
+
+// The lists can be hundreds of rows, so they are built only when opened
+function fillTerrainBody(details) {
+  if (!terrainState) return;
+  const body = details.querySelector('.terrain-body');
+  body.innerHTML =
+    details.dataset.kind === 'lifts'
+      ? liftsHtml(terrainState.lifts)
+      : trailsHtml(terrainState.trails);
+}
+
+els.terrain.addEventListener(
+  'toggle',
+  (ev) => {
+    const details = ev.target.closest?.('details.terrain-details');
+    if (details?.open) fillTerrainBody(details);
+  },
+  true // toggle doesn't bubble
+);
+
+els.terrain.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-trail-filter]');
+  if (!btn) return;
+  trailFilter = btn.dataset.trailFilter;
+  const details = btn.closest('details');
+  details.querySelector('.terrain-filters').innerHTML = filterButtons();
+  fillTerrainBody(details);
+});

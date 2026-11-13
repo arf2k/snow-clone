@@ -1,5 +1,11 @@
 import { fetchSnotelData } from './snotel.js';
 import { fetchMtnPowderData } from './mtnpowder.js';
+import {
+  parseReportPalTerrain,
+  parseJacksonTerrain,
+  parseMtnPowderTerrain,
+  fetchDrupalTerrain,
+} from './terrain.js';
 
 /**
  * ---------------- PROXY CONFIGURATION ----------------
@@ -49,8 +55,11 @@ function toNumberOrNull(raw) {
 
 function stripHtml(html) {
   if (!html) return '';
-  const text = html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>?/gm, ' ');
-  return text.replace(/\s+/g, ' ').trim();
+  // Parse rather than regex-strip, so entities (&nbsp;, &amp;) are decoded
+  // too. DOMParser documents are inert: nothing in them loads or runs.
+  const spaced = String(html).replace(/<(br|\/p|\/div|\/li)\b[^>]*>/gi, ' ');
+  const doc = new DOMParser().parseFromString(spaced, 'text/html');
+  return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
 }
 
 function attr(label, value, type = 'info') {
@@ -104,6 +113,7 @@ function parseJacksonHole(data) {
     temp,
     attributes: attributes.filter(Boolean),
     excerpt: snow.detail || snow.inversionMessage || '',
+    terrain: parseJacksonTerrain(data),
   };
 }
 
@@ -167,6 +177,7 @@ function parseReportPal(data) {
     temp: null,
     attributes: attributes.filter(Boolean),
     excerpt: mainComment ? stripHtml(mainComment.text) : '',
+    terrain: parseReportPalTerrain(data),
   };
 }
 
@@ -245,6 +256,7 @@ function parseMtnPowder(raw) {
     temp: null,
     attributes: attributes.filter(Boolean),
     excerpt,
+    terrain: parseMtnPowderTerrain(raw.Resorts?.[0] ?? raw),
   };
 }
 
@@ -269,7 +281,17 @@ async function fromDirectApi(resort, signal) {
     return parseJacksonHole(json);
   }
   if (originalUrl.includes('reportpal')) return parseReportPal(json);
-  if (Array.isArray(json)) return parseDrupal(json);
+  if (Array.isArray(json)) {
+    const parsed = parseDrupal(json);
+    // Lifts and trails are sibling endpoints of the snow report; they are
+    // fetched afterwards so the report itself shows up without waiting.
+    const reportPath = fetchUrl.split('?')[0];
+    if (parsed && reportPath.endsWith('/snow-reports')) {
+      const base = reportPath.slice(0, -'/snow-reports'.length);
+      parsed.loadTerrain = (opts) => fetchDrupalTerrain(base, opts);
+    }
+    return parsed;
+  }
   return null;
 }
 
